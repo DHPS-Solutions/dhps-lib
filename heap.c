@@ -89,7 +89,7 @@ void heap_free(struct heap_t *heap)
     free(heap);
 }
 
-struct heap_t *heap_malloc(compare_func *cmp)
+struct heap_t *heap_malloc(compare_fn_t *cmp)
 {
     struct heap_t *heap = (struct heap_t *)(malloc(sizeof(struct heap_t)));
     heap->size = 0;

@@ -63,7 +63,7 @@
     @param a void *: item a to compare.
     @param b void *: item b to compare.
 */
-typedef bool (compare_func)(void *a, void *b);
+typedef bool (compare_fn_t)(void *a, void *b);
 
 /* 
     Struct for a generic dynamic heap. 
@@ -72,7 +72,7 @@ struct heap_t {
     void            **items; /* void **: The items in the heap. */
     size_t          size; /* size_t: The size of the heap. */
     size_t          capacity; /* size_t: The capacity of the heap. */
-    compare_func    *cmp; /* bool(void *, void *): Function to compare two items. */
+    compare_fn_t    *cmp; /* bool(void *, void *): Function to compare two items. */
 };
 
 /* Methods for the heap. */
@@ -82,7 +82,7 @@ struct heap_t {
     @param cmp bool(void *, void *): the compare function that is to be used.
     @returns a pointer to a new heap. 
 */
-struct heap_t *heap_malloc(compare_func *cmp);
+struct heap_t *heap_malloc(compare_fn_t *cmp);
 
 /* 
     Destructor method for a heap.
