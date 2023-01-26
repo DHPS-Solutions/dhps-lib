@@ -1,5 +1,5 @@
-#ifndef HEAP_QUEUE_H
-#define HEAP_QUEUE_H
+#ifndef HEAP__H
+#define HEAP__H
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -56,7 +56,7 @@
     } while(0);                         \
 
 
-/* Typedefs and structs for the heap queue. */
+/* Typedefs and structs for the heap. */
 
 /* 
     Defines a function to compare two items. 
@@ -66,7 +66,7 @@
 typedef bool (compare_func)(void *a, void *b);
 
 /* 
-    Struct for a generic heap queue. 
+    Struct for a generic heap. 
 */
 struct heap_t {
     void            **items; /* void **: The items in the heap. */
@@ -75,7 +75,7 @@ struct heap_t {
     compare_func    *cmp; /* bool(void *, void *): Function to compare two items. */
 };
 
-/* Methods for the heap queue. */
+/* Methods for the heap. */
 
 /*  
     Method to allocate memory for a new heap.
@@ -106,7 +106,7 @@ void *heap_get(struct heap_t *hq, int idx);
 void *heap_pop(struct heap_t *hq);
 
 /* 
-    Method to insert an item into the heap queue. 
+    Method to insert an item into the heap. 
     @param hq struct heap_t *: the heap to push the item to.
     @param item void *: a void pointer to the item to push.
 */
