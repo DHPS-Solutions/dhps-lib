@@ -5,10 +5,10 @@
 
 /* Structs */
 
-/* Struct that contains the data as bytes and the length of the data. */
+/* Struct that contains the data of a file as bytes and the length of the data. */
 struct file_data_t {
-    char *data;
-    size_t data_len;
+    char *data; /* The file data. */
+    size_t data_len; /* The data length. */
 };
 
 /* Methods */
