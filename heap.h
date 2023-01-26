@@ -66,7 +66,7 @@
 typedef bool (compare_func)(void *a, void *b);
 
 /* 
-    Struct for a generic heap. 
+    Struct for a generic dynamic heap. 
 */
 struct heap_t {
     void            **items; /* void **: The items in the heap. */
@@ -86,30 +86,30 @@ struct heap_t *heap_malloc(compare_func *cmp);
 
 /* 
     Destructor method for a heap.
-    @param hq struct heap_t *: the heap to be destroyed.
+    @param heap struct heap_t *: the heap to be destroyed.
 */
-void heap_free(struct heap_t *hq);
+void heap_free(struct heap_t *heap);
 
 /* 
     Method to get an item in the heap without removing it.
-    @param hq struct heap_t *: the heap to get the item from.
+    @param heap struct heap_t *: the heap to get the item from.
     @param idx int: the index of the item to get.
     @returns a void pointer to the item or NULL if the index is out of bounds.
 */
-void *heap_get(struct heap_t *hq, int idx);
+void *heap_get(struct heap_t *heap, int idx);
 
 /* 
     Method to get the root item in the heap and remove it. 
-    @param hq struct heap_t *: the heap to get the item from.
+    @param heap struct heap_t *: the heap to get the item from.
     @returns a void pointer to the item or NULL heap is empty.
 */
-void *heap_pop(struct heap_t *hq);
+void *heap_pop(struct heap_t *heap);
 
 /* 
     Method to insert an item into the heap. 
-    @param hq struct heap_t *: the heap to push the item to.
+    @param heap struct heap_t *: the heap to push the item to.
     @param item void *: a void pointer to the item to push.
 */
-void heap_push(struct heap_t *hq, void *item);
+void heap_push(struct heap_t *heap, void *item);
 
 #endif
