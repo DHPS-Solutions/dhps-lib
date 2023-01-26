@@ -16,7 +16,7 @@ struct file_data_t {
 /* 
     Method to get data from file as bytes. 
     @param FILE pointer to the file to read.
-    @return The file data and data length.
+    @return The file data and data length or NULL if there is an error.
 */
 struct file_data_t *read_file(FILE *input);
 
