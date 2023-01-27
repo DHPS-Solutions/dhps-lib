@@ -9,10 +9,17 @@ Generic algorithms and datastructures for C.
 - [x] circular queue
 - [ ] stack
 - [ ] string
+- [ ] list
+- [ ] linked list
+  - [ ] singly linked
+  - [ ] doubly linked
+- [ ] binary tree
 
 ### algorithms
 - [x] insertion sort
 - [x] quicksort
+- [ ] prime number sieve
+- [ ] binary search
 
 ### Naming conventions and semantics
 Macro's:
