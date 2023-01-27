@@ -70,7 +70,7 @@ static void __partition(char *left, char *right, char **pivot, size_t size, comp
     *pivot = r;
 }
 
-void insertion_sort(const void *base, size_t nmemb, size_t size, compare_fn_t cmp)
+inline void insertion_sort(const void *base, size_t nmemb, size_t size, compare_fn_t cmp)
 {
     __insert_sort(base, 0, nmemb - 1, size, cmp);    
 }
@@ -87,7 +87,7 @@ static void __qsort_rec(char *left, char *right, size_t size, compare_fn_t cmp)
     }
 }
 
-void quicksort(const void* base, size_t nmemb, size_t size, compare_fn_t cmp) 
+inline void quicksort(const void* base, size_t nmemb, size_t size, compare_fn_t cmp) 
 {
     char *base_ptr = (char *)base;
     char *left_ptr = base_ptr;

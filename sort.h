@@ -37,9 +37,10 @@
 /* Function used to assert a generic to a new value. */
 typedef bool compare_fn_t(const void *, const void *);
 
-/* Generic insertion sort method */
+/* Generic insertion sort method. */
 void insertion_sort(const void *base, size_t nmemb, size_t size, compare_fn_t cmp);
 
+/* Generic quicksort method. */
 void quicksort(const void* base, size_t nmemb, size_t size, compare_fn_t cmp) ;
 
 #endif
