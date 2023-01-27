@@ -1,7 +1,6 @@
 #ifndef HEAP__H
 #define HEAP__H
 #include <stdlib.h>
-#include <stdio.h>
 #include <stdbool.h>
 
 /* Defines */
