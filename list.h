@@ -1,3 +1,6 @@
+#ifndef LIST_H
+#define LIST_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -10,6 +13,10 @@
 /* Error code if an item does not exists in the array list. */
 #define ITEM_NOT_FOUND -1
 
+/* Macro for each loop for arraylist. */
+#define LIST_FOR_EACH(l, i, item) \
+	for (i = 0, item = *(l->items + 0); i < l->size; item = *(l->items + ++i))
+
 /* Macro that checks if bytes are equal a to value b. */
 #define BYTES_EQUAL(a, b, size, pred)   \
     do {                                \
@@ -17,7 +24,7 @@
         char *__a = (a);                \
         char *__b = (b);                \
         do {                            \
-            pred = *__a++ == *__b++;    \
+            pred = (*__a++ == *__b++);    \
         } while(pred && --__size > 0);  \
     } while(0)                          
 
@@ -50,7 +57,7 @@ void free_list(struct list_t *list);
     @param list struct list_t *: the array list to add the item to.
     @param item void *: a void pointer to the item to add.
 */
-void list_add(struct list_t *list, const void *item);
+void list_add(struct list_t *list, void *item);
 
 /* 
     Method to get an item from an index in an array list. 
@@ -97,3 +104,5 @@ void list_delete_all(struct list_t *list);
     @returns the empty state of the list.
 */
 bool list_empty(struct list_t *list);
+
+#endif

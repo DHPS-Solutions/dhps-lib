@@ -25,14 +25,9 @@ bool list_empty(struct list_t *list)
     return (bool)list->items;
 }
 
-bool list_empty(struct list_t *list)
+void list_add(struct list_t *list, void *item)
 {
-    return (bool)list->items;
-}
-
-void list_add(struct list_t *list, const void *item)
-{
-    ensure_capacity(list);
+    __ensure_capacity(list);
     *(list->items + list->size++) = item;
 }
 
@@ -47,11 +42,15 @@ inline void *list_item_at_index(struct list_t *list, size_t idx)
 long list_index_of_item(struct list_t *list, const void *item)
 {
     bool pred = true;
-    long i;
-    while (i < list->size && pred)
-        BYTES_EQUAL((char *)*(list->items + i++), (char *)item, list->item_size, pred);
+    long i = 0;
+    while (i < list->size) {
+        BYTES_EQUAL((char *)*(list->items + i), (char *)item, list->item_size, pred);
+        if (pred) 
+            break;
+        i++;
+    }
     
-    if (pred)
+    if (!pred)
         i = ITEM_NOT_FOUND;
 
     return i;
@@ -62,12 +61,10 @@ long list_delete_at_index(struct list_t *list, size_t idx)
     if (idx > list->size)
         return ITEM_NOT_FOUND;
 
-    free(*(list->items + idx));
-
     for (long i = idx; i < list->size - 1; i++)
         *(list->items + i) = *(list->items + i + 1);
 
-    --list->item_size;
+    --list->size;
 
     __reduce_capacity(list);
 
@@ -80,8 +77,6 @@ long list_delete_item(struct list_t *list, const void *item)
     if ((ret = list_index_of_item(list, item)) == ITEM_NOT_FOUND)
         return ITEM_NOT_FOUND;
     
-    free(*(list->items + ret));
-
     for (long i = ret; i < list->size - 1; i++)
         *(list->items + i) = *(list->items + i + 1);
     
@@ -106,9 +101,7 @@ struct list_t *list_malloc(size_t item_size)
 
 void list_delete_all(struct list_t *list)
 {
-    while (list->size >= 0)
-        free(*(list->items + --list->size));
-
+    list->size = 0;
     list->capacity = LIST_STARTING_CAPACITY;
     list->items = (void **)(realloc(list->items, list->capacity * sizeof(void *)));
 }
