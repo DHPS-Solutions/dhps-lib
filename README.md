@@ -5,6 +5,7 @@ Algorithms and datastructures for C.
 - [ ] dynamic hashtable
 - [ ] dynamic array
 - [x] heap queue
+  - [ ] heap sort 
 - [x] circular queue
 - [ ] stack
 - [ ] string
