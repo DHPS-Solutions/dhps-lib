@@ -1,54 +1,49 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <time.h>
 
 #include "sort.h"
 
+#define SIZE (100000)
+
 bool cmp(const void *a, const void *b)
-{   
-    if (*(int *)a == 0)
-        printf("%d < %d\n", *(int *)a, *(int *)b);
-    
+{
     return *(int *)a < *(int *)b;
 }
 
-int cmp2(const void *a, const void *b)
+int cmp_2(const void *a, const void *b)
 {
     return *(int *)a > *(int *)b;
 }
 
 int main()
 {
-    int arr[256];
-    int copy[256];
+    int arr[SIZE];
+    int arr2[SIZE];
 
-    for (int i = 0; i < 256; i++) {
-        int num = rand() % 100;
-        *(copy + i) = num;
+    for (int i = 0; i < SIZE; i++) {
+        int num = (int)(rand() % 100);
         *(arr + i) = num;
+        *(arr2 + i) = num;
     }
 
-    printf("UNSORTED: \n");
-    for (int i = 0; i < 256; i++)
-        printf("%d \n", *(arr + i));
+    clock_t t;
+    t = clock();
+    quicksort(arr, SIZE, sizeof(int), cmp);
+    t = clock() - t;
 
-    insertion_sort(arr, 0, 255, sizeof(int), cmp);
+    double time_taken = ((double)t)/(CLOCKS_PER_SEC/1000);
 
-    qsort(copy, 256, sizeof(int), cmp2);
+    printf("My Time: %fms\n", time_taken);
 
-    printf("SORTED: \n");
-    for (int i = 0; i < 256; i++) {
-        printf("Copy: %d \n", *(copy + i));
-        printf("Arr: %d \n", *(arr + i));
-    }
+    t = clock();
+    qsort(arr2, SIZE, sizeof(int), cmp_2);
+    t = clock() - t;
 
-    printf("Sorted? \n");
-    int i;
-    for (i = 2; i < 256; i++)
-        if (*(arr + i) != *(copy + i))
-            break;
-    
-    printf("%d", i);
+    time_taken = ((double)t)/(CLOCKS_PER_SEC/1000);
+
+    printf("Std Time: %fms\n", time_taken);
 
     return 0;
 }
