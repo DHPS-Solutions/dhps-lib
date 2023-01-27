@@ -1,4 +1,4 @@
-# dhphs-lib
+# dhps-lib
 Generic algorithms and datastructures for C.
 
 ### datastructures
