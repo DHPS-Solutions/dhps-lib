@@ -10,7 +10,7 @@
 #define RUN_INSERTION(size) (100 * size)
 
 /* Macro that swaps value a and value b. Grabbed from the glibc. */
-#define byte_swap(a, b, size)			\
+#define BYTE_SWAP(a, b, size)			\
     do {								\
         size_t __size = (size);			\
         char *__a = (a), *__b = (b);	\
@@ -22,7 +22,7 @@
     } while (0)
 
 /* Macro that asserts a to value b. */
-#define byte_assert(a, b, size)         \
+#define BYTE_ASSERT(a, b, size)         \
     do {                                \
         size_t __size = (size);         \
         char *__a = (a);                \

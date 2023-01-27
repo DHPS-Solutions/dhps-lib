@@ -5,7 +5,7 @@
 
 #include "sort.h"
 
-#define SIZE (100000)
+#define SIZE (200000)
 
 bool cmp(const void *a, const void *b)
 {

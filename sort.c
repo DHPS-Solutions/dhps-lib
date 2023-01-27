@@ -14,13 +14,13 @@ static void __insert_sort(const void *base, size_t left_idx, size_t right_idx, s
     char *j;
 
     while (left_ptr <= right_ptr) {
-        byte_assert(change, left_ptr, size);
+        BYTE_ASSERT(change, left_ptr, size);
         j = left_ptr - size;
         while (cmp(change, j) && j >= base_ptr) {
-            byte_assert(j + size, j, size);
+            BYTE_ASSERT(j + size, j, size);
             j -= size;
         }
-        byte_assert(j + size, change, size);
+        BYTE_ASSERT(j + size, change, size);
 
         left_ptr += size;
     }
@@ -30,12 +30,12 @@ static void __insert_sort(const void *base, size_t left_idx, size_t right_idx, s
 static void __median_three(char *left, char *mid, char *right, size_t size, compare_fn_t cmp)
 {
     if (cmp(mid, left))
-        byte_swap(mid, left, size);
+        BYTE_SWAP(mid, left, size);
 
     if (cmp(right, mid)) {
-        byte_swap(right, mid, size);
+        BYTE_SWAP(right, mid, size);
         if (cmp(mid, left)) {
-            byte_swap(mid, left, size);
+            BYTE_SWAP(mid, left, size);
         }
     }
 }
@@ -48,10 +48,10 @@ static void __partition(char *left, char *right, char **pivot, size_t size, comp
     __median_three(left, mid, right, size, cmp);
 
     char piv[size];
-    byte_assert(piv, mid, size);
-    byte_assert(mid, l, size);
-    byte_assert(l, piv, size);
-    byte_swap(mid, right - size, size);
+    BYTE_ASSERT(piv, mid, size);
+    BYTE_ASSERT(mid, l, size);
+    BYTE_ASSERT(l, piv, size);
+    BYTE_SWAP(mid, right - size, size);
 
     while (true) {
         do l += size; 
@@ -62,11 +62,11 @@ static void __partition(char *left, char *right, char **pivot, size_t size, comp
         if (l >= r)
             break;
 
-        byte_swap(l, r, size);
+        BYTE_SWAP(l, r, size);
     }
 
-    byte_assert(left + size, r, size);
-    byte_assert(r, piv, size);
+    BYTE_ASSERT(left + size, r, size);
+    BYTE_ASSERT(r, piv, size);
     *pivot = r;
 }
 
