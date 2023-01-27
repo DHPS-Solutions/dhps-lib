@@ -5,14 +5,13 @@
 
 #include "sort.h"
 
-#define SIZE (200000)
-
-bool cmp(const void *a, const void *b)
+#define SIZE (50000)
+static inline bool cmp(const void *a, const void *b)
 {
     return *(int *)a < *(int *)b;
 }
 
-int cmp_2(const void *a, const void *b)
+static inline int cmp_2(const void *a, const void *b)
 {
     return *(int *)a > *(int *)b;
 }
