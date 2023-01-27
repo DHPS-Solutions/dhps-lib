@@ -3,13 +3,12 @@ Generic algorithms and datastructures for C.
 
 ### datastructures
 - [ ] dynamic hashtable
-- [ ] dynamic array
+- [ ] dynamic array / list
 - [x] heap queue
   - [ ] heap sort 
 - [x] circular queue
 - [ ] stack
 - [ ] string
-- [ ] list
 - [ ] linked list
   - [ ] singly linked
   - [ ] doubly linked
