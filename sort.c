@@ -4,7 +4,7 @@
 
 #include "sort.h"
 
-static void __insert_sort(const void *base, size_t left_idx, size_t right_idx, size_t size, compare_fn_t cmp)
+static void __insertion_sort(const void *base, size_t left_idx, size_t right_idx, size_t size, compare_fn_t cmp)
 {
     char *base_ptr = (char *)base;
     char *left_ptr = base_ptr + size;
@@ -72,18 +72,18 @@ static void __partition(char *left, char *right, char **pivot, size_t size, comp
 
 inline void insertion_sort(const void *base, size_t nmemb, size_t size, compare_fn_t cmp)
 {
-    __insert_sort(base, 0, nmemb - 1, size, cmp);    
+    __insertion_sort(base, 0, nmemb - 1, size, cmp);    
 }
 
-static void __qsort_rec(char *left, char *right, size_t size, compare_fn_t cmp)
+static void __quicksort_rec(char *left, char *right, size_t size, compare_fn_t cmp)
 {
     if (right - left >= RUN_INSERTION(size)) {
         char *piv;
         __partition(left, right, &piv, size, cmp);
-        __qsort_rec(piv + size, right, size, cmp);
-        __qsort_rec(left, piv - size, size, cmp);
+        __quicksort_rec(piv + size, right, size, cmp);
+        __quicksort_rec(left, piv - size, size, cmp);
     } else {
-        __insert_sort(left, 0, (right - left + size) / size, size, cmp);
+        __insertion_sort(left, 0, (right - left + size) / size, size, cmp);
     }
 }
 
@@ -92,5 +92,5 @@ inline void quicksort(const void* base, size_t nmemb, size_t size, compare_fn_t 
     char *base_ptr = (char *)base;
     char *left_ptr = base_ptr;
     char *right_ptr = base_ptr + size * (nmemb - 1);
-    __qsort_rec(left_ptr, right_ptr, size, cmp);
+    __quicksort_rec(left_ptr, right_ptr, size, cmp);
 }

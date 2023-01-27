@@ -15,45 +15,45 @@
     Macro to find the index of left child to a heap node.
     @param parent_idx int: index of the parent node. 
 */
-#define heap_left_child_idx(parent_idx) ((parent_idx << 1) + 1)
+#define HEAP_LEFT_CHILD_IDX(parent_idx) ((parent_idx << 1) + 1)
 
 /* 
     Macro to find the index of left right to a heap node. 
     @param parent_idx int: index of the parent node. 
 */
-#define heap_right_child_idx(parent_idx) ((parent_idx + 1) << 1)
+#define HEAP_RIGHT_CHILD_IDX(parent_idx) ((parent_idx + 1) << 1)
 
 /* 
     Macro to find the index of the parent to a heap node.
     @param child_idx int: index of the child node. 
 */
-#define heap_parent_idx(child_idx) ((child_idx - 1) >> 1)
+#define HEAP_PARENT_IDX(child_idx) ((child_idx - 1) >> 1)
 
 /* 
     Macro to check if the heap node has a left child.
     @param idx int: index of the heap node to check.
     @param size size_t: size of the heap.
 */
-#define heap_has_left(idx, size) (heap_left_child_idx(idx) < size)
+#define HEAP_HAS_LEFT(idx, size) (HEAP_LEFT_CHILD_IDX(idx) < size)
 
 /*
     Macro to check if the heap node has a right child.
     @param idx int: index of the heap node to check.
     @param size size_t: size of the heap.
 */
-#define heap_has_right(idx, size) (heap_right_child_idx(idx) < size)
+#define HEAP_HAS_RIGHT(idx, size) (HEAP_RIGHT_CHILD_IDX(idx) < size)
 
 /* 
     Macro to swap the place of two items. 
     @param a void *: item a to swap.
     @param b void *: item b to swap.
 */
-#define swap(a, b)                      \
+#define SWAP(a, b)                      \
     do {                                \
         void *c = a;                    \
         a = b;                          \
         b = c;                          \
-    } while(0);                         \
+    } while(0)                          
 
 
 /* Typedefs and structs for the heap. */
