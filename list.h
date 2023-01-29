@@ -14,7 +14,16 @@
 
 /* Macro for each loop for arraylist. */
 #define LIST_FOR_EACH(l, i, item) \
-	for (i = 0, item = *(l->items + 0); i < l->size; item = *(l->items + ++i))
+	for (i = 0, item = *l->items; i < l->size; item = *(l->items + ++i))
+
+/* Macro that does a for each loop for the arraylist while also doing automatic typecasting */
+#define LIST_FOR_EACH_T(l, i, item, T) \
+	for (i = 0, item = (T *)(*l->items); i < l->size; item = (T *)(*(l->items + ++i)))
+
+/* Macro for doing a reversed for each loop for the arraylist. */
+#define LIST_REVERSED_FOR_EACH(l, i, item) \
+	for (i = l->size - 1, item = *(l->items + i); i >= 0; item = *(l->items + --i))
+
 
 /* Macro that checks if bytes are equal a to value b. */
 #define BYTES_EQUAL(a, b, size, pred)   \

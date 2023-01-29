@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#include "list.h"
+#include "../list.h"
 
 int main()
 {
@@ -19,10 +19,15 @@ int main()
     list_add(list, (void *)&c);
     list_add(list, (void *)&d);
 
-    int i;
+    size_t i;
     void *item;
     printf("After adding\n");
     LIST_FOR_EACH(list, i, item) {
+        printf("%d\n", *(int *)item);        
+    }
+
+    printf("Reversed\n");
+    LIST_REVERSED_FOR_EACH(list, i, item) {
         printf("%d\n", *(int *)item);        
     }
 
@@ -37,6 +42,11 @@ int main()
     LIST_FOR_EACH(list, i, item) {
         printf("%d\n", *(int *)item);        
     }
+
+    int *item_T;
+    printf("Using type casting\n");
+    LIST_FOR_EACH_T(list, i, item_T, int)
+        printf("%d\n", *item_T);        
 
     printf("Index of item with value 5: %ld\n", list_index_of_item(list, (void *)&e));
     
