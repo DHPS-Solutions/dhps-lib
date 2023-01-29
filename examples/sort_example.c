@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <time.h>
 
-#include "sort.h"
+#include "../sort.h"
 
 #define SIZE (50000)
 static inline bool cmp(const void *a, const void *b)
