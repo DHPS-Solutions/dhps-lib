@@ -7,7 +7,11 @@
 /* Defines */
 #define FIND_MID(high, low, size) (size * ((high - left) / size >> 1))
 
-#define RUN_INSERTION(size) (100 * size)
+#define RUN_INSERTION 50
+
+#define min(a, b) ((a) < (b) ? (a) : (b))
+
+#define BLOCK 256
 
 /* Macro that swaps value a and value b. Grabbed from the glibc. */
 #define BYTE_SWAP(a, b, size)           \
@@ -30,7 +34,7 @@
         do {                            \
             *__a++ = *__b++;            \
         } while(--__size > 0);          \
-    } while(0)                          
+    } while(0)               
     
 /* Methods */
 
@@ -39,6 +43,9 @@ typedef bool compare_fn_t(const void *, const void *);
 
 /* Generic insertion sort method. */
 void insertion_sort(const void *base, size_t nmemb, size_t size, compare_fn_t cmp);
+
+/* Generic bubble sort method. */
+void bubble_sort(const void *base, size_t nmemb, size_t size, compare_fn_t cmp);
 
 /* Generic quicksort method. */
 void quicksort(const void* base, size_t nmemb, size_t size, compare_fn_t cmp) ;
