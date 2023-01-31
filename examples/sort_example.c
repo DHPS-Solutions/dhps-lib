@@ -6,30 +6,30 @@
 #include "../sort.h"
 
 #define SIZE (5 * 1000000)
-double arr[SIZE];
-double arr2[SIZE];
+int arr[SIZE];
+int arr2[SIZE];
 
 static inline bool cmp(const void *a, const void *b)
 {
-    return *(double *)a < *(double *)b;
+    return *(int *)a < *(int *)b;
 }
 
 static inline int cmp_2(const void *a, const void *b)
 {
-    return *(double *)a > *(double *)b;
+    return *(int *)a > *(int *)b;
 }
 
 int main()
 {
     for (int i = 0; i < SIZE; i++) {
-        double num = (double)(rand());
+        int num = (int)(rand());
         *(arr + i) = num;
         *(arr2 + i) = num;
     }
 
     clock_t t;
     t = clock();
-    quicksort(arr, SIZE, sizeof(double), cmp);
+    quicksort(arr, SIZE, sizeof(int), cmp);
     t = clock() - t;
 
     double time_taken = ((double)t)/(CLOCKS_PER_SEC/1000);
@@ -37,7 +37,7 @@ int main()
     printf("My Time: %fms\n", time_taken);
 
     t = clock();
-    qsort(arr2, SIZE, sizeof(double), cmp_2);
+    qsort(arr2, SIZE, sizeof(int), cmp_2);
     t = clock() - t;
 
     time_taken = ((double)t)/(CLOCKS_PER_SEC/1000);

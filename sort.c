@@ -4,22 +4,24 @@
 
 #include "sort.h"
 
-static void __bubble_sort(const void *base, size_t left_idx, size_t right_idx, size_t size, compare_fn_t cmp)
+/* Nice clean pointer bubblesort, never fully O(n^2). */
+static void __bubble_sort(char *left, char *right, size_t size, compare_fn_t cmp)
 {
-    char *base_ptr = (char *)base;
-    size_t max = size * right_idx;
-    for (size_t i = max; i > 0; i -= size)
-        for (size_t j = 0; j < i; j += size)
-            if ((*cmp)(base_ptr + i, base_ptr + j))
-                BYTE_SWAP(base_ptr + j, base_ptr + i, size);  
+    for (char *i = right; i > left; i -= size) // Start at the right.
+        for (char *j = left; j < i; j += size) // Check all elements before i if they are larger.
+            if ((*cmp)(i, j))
+                BYTE_SWAP(j, i, size); // Swap if larger.
 }
 
+/* Nice clean pointer insertion sort, never fully O(n^2). */
 static void __insertion_sort(char *left, char *right, size_t size, compare_fn_t cmp)
 {
+    // First loop that semi sorts array, moves smallest element to first position.
     for (char* i = left + size; i <= right; i += size)
         if (cmp(i, left))
             BYTE_SWAP(i, left, size);
 
+    // Second loop sorts all elements, extremely fast if array is almosot already sorted.
     for (char* i = left + 2 * size; i <= right; i += size) {
         char high[size];
         BYTE_ASSERT(high, i, size);
@@ -32,9 +34,10 @@ static void __insertion_sort(char *left, char *right, size_t size, compare_fn_t 
     }
 }
 
+/* Standard sorting of three values. */
 static inline void __median_three(char *left, char *mid, char *right, size_t size, compare_fn_t cmp)
 {
-    if ((*cmp)(mid, left))
+    if ((*cmp)(mid, left)) 
         BYTE_SWAP(mid, left, size);
 
     if ((*cmp)(right, mid)) {
@@ -45,6 +48,7 @@ static inline void __median_three(char *left, char *mid, char *right, size_t siz
     }
 }
 
+/* Magical block partitioning based on this research paper: https://arxiv.org/pdf/1604.06697.pdf */
 static void __block_partition(char *left, char *right, char **pivot, size_t size, compare_fn_t cmp)
 {
     char *mid = left + FIND_MID(right, left, size);
@@ -59,45 +63,48 @@ static void __block_partition(char *left, char *right, char **pivot, size_t size
 
     int block_size = BLOCK * size;
 
-    if (right - left > (block_size * 2) + 3 * size) {
-        l = left + (size * 2);
+    if (right - left + size > 2 * block_size) { // Probably inefficient code, but no
+        l = left + (size * 2);                  // need to init if the loop doesn't run.
         r = right - size;
 
-        char *offset_left[block_size];
-        char *offset_right[block_size];
-        char **offset_dif_left = offset_left;
-        char **offset_dif_right = offset_right;
+        char *offset_left[block_size];          // Left buffer.
+        char *offset_right[block_size];         // Right buffer.
+        char **num_left = offset_left;          // Tmp pointer to left buffer.
+        char **num_right = offset_right;        // Tmp pointer to right buffer.
 
-        do {
-            if (offset_dif_left == offset_left) {
-                char *pd = l;
-                do {
-                    *offset_dif_left = pd;
-                    offset_dif_left += cmp(piv, pd);
-                    pd += size;
-                } while (pd < l + block_size);
+        do {                                    // Main loop for partioning.
+            if (num_left == offset_left) {      // If the left buffer is empty start loop.
+                char *pd = l;                   // Tmp value for the left-most value.
+                do {                            
+                    *num_left = pd;             // Set the the current address in the buffer.
+                    num_left += cmp(piv, pd);   // If the value is larger than current piv, go to the next pointer.
+                    pd += size;                 // Go to the next value to the right.
+                } while (pd < l + block_size);  // Continue until movement is equal to blocksize.
             }
-            if (offset_dif_right == offset_right) {
-                char* pd = r;
+            if (num_right == offset_right) {    // If the left buffer is empty start loop.
+                char *pd = r;                   // Tmp value for the right-most value.
                 do {
-                    *offset_dif_right = pd;
-                    offset_dif_right += cmp(pd, piv);
-                    pd -= size;    
-                } while (pd > r - block_size);
+                    *num_right = pd;            // Set the the current address in the buffer.
+                    num_right += cmp(pd, piv);  // If the value is larger than current piv, go to the next pointer.
+                    pd -= size;                 // Go to the next value to the left.
+                } while (pd > r - block_size);  // Continue until movement is equal to blocksize.
             }
 
-            int min = min(offset_dif_left - offset_left, offset_dif_right - offset_right);
-            offset_dif_left -= min;
-            offset_dif_right -= min;
+            // Get the size of the smallest buffer and move that many places to the left in both buffers.
+            int min = min(num_left - offset_left, num_right - offset_right); 
+            num_left -= min;
+            num_right -= min;
             
+            // Swap the pointers so the pointers to larger values are on the right buffer and smaller on the left buffer.
             for (int i = 0; i < min; i++)
-                BYTE_SWAP(*(offset_dif_left + i), *(offset_dif_right + i), size);
+                BYTE_SWAP(*(num_left + i), *(num_right + i), size);
 
-            if (offset_dif_left == offset_left)
+            // If the pointers are equal to the buffer, this block is correct for that side and we move to the next block.
+            if (num_left == offset_left)
                 l += block_size;
-            if (offset_dif_right == offset_right)
+            if (num_right == offset_right)
                 r -= block_size;
-        } while(r - l > 2 * block_size);
+        } while(r - l + size > 2 * block_size); 
         l -= size;
         r += size;
     } else {
@@ -105,6 +112,7 @@ static void __block_partition(char *left, char *right, char **pivot, size_t size
         r = right;
     }
 
+    // Hoare's partition, slightly rewritten.
     do {
         do l += size; 
         while((*cmp)(l, piv));
@@ -124,21 +132,23 @@ static void __block_partition(char *left, char *right, char **pivot, size_t size
 
 inline void insertion_sort(const void *base, size_t nmemb, size_t size, compare_fn_t cmp)
 {
-    char *base_ptr = (char *)base;
-    char *bound_ptr = base_ptr + size * (nmemb - 1);
+    char *base_ptr = (char *)base; // Cast the array to an array of bytes.
+    char *bound_ptr = base_ptr + size * (nmemb - 1); // Create a pointer to the last byte.
     __insertion_sort(base_ptr, bound_ptr, size, cmp);    
 }
 
 inline void bubble_sort(const void *base, size_t nmemb, size_t size, compare_fn_t cmp)
 {
-    __bubble_sort(base, 0, nmemb - 1, size, cmp);
+    char *base_ptr = (char *)base; // Cast the array to an array of bytes
+    char *bound_ptr = base_ptr + size * (nmemb - 1); // Create a pointer to the last byte.
+    __bubble_sort(base_ptr, bound_ptr, size, cmp);
 }
 
 static void __quicksort_rec(char *left, char *right, size_t size, compare_fn_t cmp)
 {
     if (right - left > RUN_INSERTION) {
-        char *piv;
-        __block_partition(left, right, &piv, size, cmp);
+        char *piv; // Create pointer for the pivot/split-point.
+        __block_partition(left, right, &piv, size, cmp); // Partition the pointer.
         __quicksort_rec(piv + size, right, size, cmp);
         __quicksort_rec(left, piv - size, size, cmp);
     } else {
@@ -146,13 +156,13 @@ static void __quicksort_rec(char *left, char *right, size_t size, compare_fn_t c
     }
 }
 
-inline void quicksort(const void* base, size_t nmemb, size_t size, compare_fn_t cmp) 
+inline void quicksort(const void *base, size_t nmemb, size_t size, compare_fn_t cmp) 
 {
-    if (!nmemb)
+    if (!nmemb) // Return if there are no items.
         return;
     
-    char *base_ptr = (char *)base;
+    char *base_ptr = (char *)base; // Cast the array to an array of bytes.
     char *left_ptr = base_ptr;
-    char *right_ptr = base_ptr + size * nmemb;
+    char *right_ptr = base_ptr + size * nmemb; // Create a pointer to the last byte.
     __quicksort_rec(left_ptr, right_ptr, size, cmp);
 }
