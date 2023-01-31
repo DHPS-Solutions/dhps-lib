@@ -45,7 +45,7 @@ bool queue_empty(struct queue_t *queue);
 bool queue_full(struct queue_t *queue);
 
 /* 
-    Predicate method to check if queue is empty.
+    Method to insert an item into the queue.
     @param queue struct queue_t *: the queue to push to.
     @param item void*: the item to push.
     @returns bool if the item was successfully added.
