@@ -66,7 +66,7 @@ void hashmap_free(struct hashmap_t *map)
     free(map->buckets);
 }
 
-static uint32_t hash_func(void *t, size_t ts, uint32_t size_log2)
+static uint32_t hash_func(void *t, size_t ts)
 {
     //NOTE: gigahafting kok (legger dermed ikke så mye lit til det)
     uint32_t A = 1327217885;
@@ -74,7 +74,8 @@ static uint32_t hash_func(void *t, size_t ts, uint32_t size_log2)
     for (size_t i = 0; i < ts; i++)
 	k += (k << 5) + ((int8_t *)t)[i];
 
-    return (k * A >> (32 - size_log2));
+    return k * A;
+    //return (k * A >> (32 - size_log2));
 }
 
 static inline uint8_t hash_extra(uint32_t hash)
@@ -166,8 +167,9 @@ static void *get_from_bucket(struct bucket_t *bucket, void *key, size_t key_size
 
 static void move_entry(struct bucket_t *new_buckets, uint32_t size_log2, struct hashmap_entry_t *entry)
 {
-    uint32_t hash = hash_func(entry->key, entry->key_size, size_log2);
-    uint8_t extra = hash_extra(hash);
+    uint32_t hash_full = hash_func(entry->key, entry->key_size);
+    uint32_t hash = hash_full >> (32 - size_log2);
+    uint8_t extra = hash_extra(hash_full);
     insert_into_bucket(&new_buckets[hash], entry->key, entry->key_size, entry->value, extra);
 }
 
@@ -218,17 +220,19 @@ void hashmap_put(struct hashmap_t *map, void *key, size_t key_size, void *t, siz
         move_entries(map, new_buckets);
     }
 
-    uint32_t hash = hash_func(key, key_size, map->size_log2);
+    uint32_t hash_full = hash_func(key, key_size);
+    uint32_t hash = hash_full >> (32 - map->size_log2);
+    uint8_t extra = hash_extra(hash_full);
     //printf("alpha: %f h: %d len: %zu size: %d\n", load_factor, hash, map->len, map->size_log2);
-    uint8_t extra = hash_extra(hash);
     insert_into_bucket(&map->buckets[hash], key, key_size, t, extra);
     map->len++;
 }
 
 void *hashmap_get(struct hashmap_t *map, void *key, size_t key_size)
 {
-    uint32_t hash = hash_func(key, key_size, map->size_log2);
-    uint8_t extra = hash_extra(hash);
+    uint32_t hash_full = hash_func(key, key_size);
+    uint32_t hash = hash_full >> (32 - map->size_log2);
+    uint8_t extra = hash_extra(hash_full);
     return get_from_bucket(&map->buckets[hash], key, key_size, extra);
 }
 
