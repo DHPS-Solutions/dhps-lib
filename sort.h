@@ -15,7 +15,7 @@
 #define FIND_MID(high, low, size) (size * ((high - left) / size >> 1))
 
 /* Defined value for amount of before switching to insertion sort. */
-#define RUN_INSERTION 50
+#define RUN_INSERTION 16
 
 /* 
     Macro to that returns the smallest of 2 items. 
@@ -25,7 +25,7 @@
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
 /* The amount of elements per block. */
-#define BLOCK 256
+#define BLOCK 512
 
 /* 
     Macro that swaps value a and value b. Grabbed from the glibc.
@@ -60,7 +60,17 @@
             *__a++ = *__b++;            \
         } while(--__size > 0);          \
     } while(0)               
-    
+
+#define BYTES_EQUAL(a, b, size, pred)   \
+    do {                                \
+        size_t __size = (size);         \
+        char *__a = (a);                \
+        char *__b = (b);                \
+        do {                            \
+            pred = (*__a++ == *__b++);    \
+        } while(pred && --__size > 0);  \
+    } while(0)                          
+
 /* Methods */
 
 /* 

@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <tgmath.h>
 
 #include "sort.h"
 
@@ -63,7 +64,7 @@ static void __block_partition(char *left, char *right, char **pivot, size_t size
 
     int block_size = BLOCK * size;
 
-    if (right - left + size > 2 * block_size) { // Probably inefficient code, but no
+    if (right - left > 2 * block_size + 3 * size) { // Probably inefficient code, but no
         l = left + (size * 2);                  // need to init if the loop doesn't run.
         r = right - size;
 
@@ -76,16 +77,26 @@ static void __block_partition(char *left, char *right, char **pivot, size_t size
             if (num_left == offset_left) {      // If the left buffer is empty start loop.
                 char *pd = l;                   // Tmp value for the left-most value.
                 do {                            
-                    *num_left = pd;             // Set the the current address in the buffer.
-                    num_left += cmp(piv, pd);   // If the value is larger than current piv, go to the next pointer.
+                    *num_left = pd; 
+                    bool pred = true;
+                    if (*piv == *pd)
+                        BYTES_EQUAL(piv + 1, pd + 1, size - 1, pred);
+                    else
+                        pred = false;           // Set the the current address in the buffer.
+                    num_left += pred || cmp(piv, pd);   // If the value is larger than current piv, go to the next pointer.
                     pd += size;                 // Go to the next value to the right.
                 } while (pd < l + block_size);  // Continue until movement is equal to blocksize.
             }
             if (num_right == offset_right) {    // If the left buffer is empty start loop.
                 char *pd = r;                   // Tmp value for the right-most value.
                 do {
-                    *num_right = pd;            // Set the the current address in the buffer.
-                    num_right += cmp(pd, piv);  // If the value is larger than current piv, go to the next pointer.
+                    *num_right = pd;
+                    bool pred = true;
+                    if (*piv == *pd)
+                        BYTES_EQUAL(piv + 1, pd + 1, size - 1, pred);
+                    else
+                        pred = false;           // Set the the current address in the buffer.
+                    num_right += pred || cmp(pd, piv);  // If the value is larger than current piv, go to the next pointer.
                     pd -= size;                 // Go to the next value to the left.
                 } while (pd > r - block_size);  // Continue until movement is equal to blocksize.
             }
@@ -130,6 +141,36 @@ static void __block_partition(char *left, char *right, char **pivot, size_t size
     *pivot = r;
 }
 
+static void __partition(char *left, char *right, char **pivot, size_t size, compare_fn_t cmp)
+{
+    char *l = left + size;
+    char *r = right;
+    char *mid = left + FIND_MID(right, left, size);
+    __median_three(left, mid, right, size, cmp);
+
+    char piv[size];
+    BYTE_ASSERT(piv, mid, size);
+    BYTE_ASSERT(mid, l, size);
+    BYTE_ASSERT(l, piv, size);
+    BYTE_SWAP(mid, right - size, size);
+
+    while (true) {
+        do l += size; 
+        while(cmp(l, piv));
+        do r -= size;
+        while (cmp(piv, r));
+
+        if (l >= r)
+            break;
+
+        BYTE_SWAP(l, r, size);
+    }
+
+    BYTE_ASSERT(left + size, r, size);
+    BYTE_ASSERT(r, piv, size);
+    *pivot = r;
+}
+
 inline void insertion_sort(const void *base, size_t nmemb, size_t size, compare_fn_t cmp)
 {
     char *base_ptr = (char *)base; // Cast the array to an array of bytes.
@@ -144,13 +185,14 @@ inline void bubble_sort(const void *base, size_t nmemb, size_t size, compare_fn_
     __bubble_sort(base_ptr, bound_ptr, size, cmp);
 }
 
-static void __quicksort_rec(char *left, char *right, size_t size, compare_fn_t cmp)
-{
-    if (right - left > RUN_INSERTION) {
+static void __quicksort_rec(char *left, char *right, size_t size, compare_fn_t cmp, int depth, const int depth_limit)
+{    
+    if (right - left > RUN_INSERTION && depth < depth_limit) {
+        depth++;
         char *piv; // Create pointer for the pivot/split-point.
         __block_partition(left, right, &piv, size, cmp); // Partition the pointer.
-        __quicksort_rec(piv + size, right, size, cmp);
-        __quicksort_rec(left, piv - size, size, cmp);
+        __quicksort_rec(piv + size, right, size, cmp, depth, depth_limit);
+        __quicksort_rec(left, piv - size, size, cmp, depth, depth_limit);
     } else {
         __insertion_sort(left, right, size, cmp);
     }
@@ -163,6 +205,8 @@ inline void quicksort(const void *base, size_t nmemb, size_t size, compare_fn_t 
     
     char *base_ptr = (char *)base; // Cast the array to an array of bytes.
     char *left_ptr = base_ptr;
-    char *right_ptr = base_ptr + size * nmemb; // Create a pointer to the last byte.
-    __quicksort_rec(left_ptr, right_ptr, size, cmp);
+    char *right_ptr = base_ptr + size * (nmemb - 1); // Create a pointer to the last byte.
+    int depth = 0;
+    const int depth_limit = 2 * ilogb((double)(right_ptr - left_ptr)) + 3;
+    __quicksort_rec(left_ptr, right_ptr, size, cmp, depth, depth_limit);
 }
