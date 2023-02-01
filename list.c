@@ -21,7 +21,7 @@ static void __reduce_capacity(struct list_t *list)
 
 bool list_empty(struct list_t *list)
 {
-    return (bool)list->items;
+    return !list->size;
 }
 
 void list_add(struct list_t *list, void *item)

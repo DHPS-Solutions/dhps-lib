@@ -7,7 +7,7 @@ Generic algorithms and datastructures for C.
 - [x] heap queue
   - [ ] heap sort 
 - [x] circular queue
-- [ ] stack
+- [x] stack
 - [ ] string
 - [ ] linked list
   - [ ] singly linked
