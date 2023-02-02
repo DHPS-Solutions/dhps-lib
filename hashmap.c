@@ -1,70 +1,12 @@
 /* Written by Nicolai H. Brand 2023 */
-#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <assert.h>
 
-#define DHPS_BUCKET_SIZE 6
-#define DHPS_STARTING_OVERFLOW_BUCKET_SIZE 4
-#define DHPS_STARTING_BUCKETS_log2 3
-#define N_BUCKETS(log2) (2 << ((log2) - 1))
+#include "hashmap.h"
 
-struct hashmap_entry_t {
-    void *value;
-    void *key;
-    size_t key_size;
-    uint8_t hash_extra;         // used for faster comparison
-                                // the common case is that the bytes are not equal
-};
-
-struct overflow_bucket_t {
-    // NOTE: this is really just a dynamic array.
-    struct hashmap_entry_t *entries;
-    uint8_t size, capacity;
-};
-
-struct bucket_t {
-    struct hashmap_entry_t entries[DHPS_BUCKET_SIZE];   // 6 direct items. Spatial locality bros.
-    struct overflow_bucket_t *overflow;
-};
-
-struct hashmap_t {
-    struct bucket_t *buckets;
-    uint32_t size_log2;
-    size_t len;         // total items stored in the hashmap
-};
-
-
-void hashmap_init(struct hashmap_t *map)
-{
-    map->len = 0;
-    map->size_log2 = DHPS_STARTING_BUCKETS_log2;
-
-    map->buckets = malloc(sizeof(struct bucket_t) * N_BUCKETS(map->size_log2));
-    struct bucket_t bucket;
-    for (uint32_t i = 0; i < N_BUCKETS(map->size_log2); i++) {
-        bucket = map->buckets[i];
-        bucket.overflow = NULL;
-        for (uint8_t i = 0; i < DHPS_BUCKET_SIZE; i++)
-            bucket.entries[i].value = NULL;
-    }
-}
-
-void hashmap_free(struct hashmap_t *map)
-{
-    struct bucket_t bucket;
-    for (uint32_t i = 0; i < N_BUCKETS(map->size_log2); i++) {
-        bucket = map->buckets[i];
-        if (bucket.overflow != NULL) {
-            free(bucket.overflow->entries);
-            free(bucket.overflow);
-        }
-    }
-
-    free(map->buckets);
-}
 
 static uint32_t hash_func(void *t, size_t ts)
 {
@@ -123,7 +65,6 @@ static void insert_into_overflow(struct overflow_bucket_t *overflow, void *key, 
     /* this should really never happen assuming the hash function spreads values evenly */
     if (overflow->size >= overflow->capacity) {
         //TODO: resize of overflow bucket or force resize entire map?
-        printf("nooooooooo %d\n", overflow->size);
         exit(1);
     }
 
@@ -249,6 +190,35 @@ static void move_entries(struct hashmap_t *map, struct bucket_t *new_buckets)
     map->buckets = new_buckets;
 }
 
+void hashmap_init(struct hashmap_t *map)
+{
+    map->len = 0;
+    map->size_log2 = DHPS_STARTING_BUCKETS_log2;
+
+    map->buckets = malloc(sizeof(struct bucket_t) * N_BUCKETS(map->size_log2));
+    struct bucket_t bucket;
+    for (uint32_t i = 0; i < N_BUCKETS(map->size_log2); i++) {
+        bucket = map->buckets[i];
+        bucket.overflow = NULL;
+        for (uint8_t i = 0; i < DHPS_BUCKET_SIZE; i++)
+            bucket.entries[i].value = NULL;
+    }
+}
+
+void hashmap_free(struct hashmap_t *map)
+{
+    struct bucket_t bucket;
+    for (uint32_t i = 0; i < N_BUCKETS(map->size_log2); i++) {
+        bucket = map->buckets[i];
+        if (bucket.overflow != NULL) {
+            free(bucket.overflow->entries);
+            free(bucket.overflow);
+        }
+    }
+
+    free(map->buckets);
+}
+
 void hashmap_put(struct hashmap_t *map, void *key, size_t key_size, void *t, size_t ts)
 {
     double load_factor = (double)map->len / (N_BUCKETS(map->size_log2) * DHPS_BUCKET_SIZE);
@@ -288,55 +258,15 @@ void *hashmap_get(struct hashmap_t *map, void *key, size_t key_size)
     return get_from_bucket(&map->buckets[hash], key, key_size, extra);
 }
 
-bool hashmap_rm(struct hashmap_t *map);
-
-
-void stress_test()
+bool hashmap_rm(struct hashmap_t *map, void *key, size_t key_size)
 {
-    struct hashmap_t map;
-    hashmap_init(&map);
+    uint32_t hash_full = hash_func(key, key_size);
+    uint32_t hash = hash_full >> (32 - map->size_log2);
+    uint8_t extra = hash_extra(hash_full);
+    struct hashmap_entry_t *entry =  get_from_bucket(&map->buckets[hash], key, key_size, extra);
+    if (entry == NULL || entry->value == NULL)
+        return false;
 
-    #define N 1000
-
-    char key[128];
-    for (int i = 0; i < N; i++) {
-        snprintf(key, 32, "hello:%d!", i);
-        char *cpy = malloc(32);
-        strcpy(cpy, key);
-        int *cpy_i = malloc(4);
-        *cpy_i = i;
-        hashmap_put(&map, cpy, strlen(cpy) + 1, cpy_i, 4);
-    }
-
-    for (int i = 0; i < N; i++) {
-        snprintf(key, 32, "hello:%d!", i);
-        int *x = hashmap_get(&map, key, strlen(key) + 1);
-        assert(*x == i);
-    }
-}
-
-int main()
-{
-    stress_test();
-
-    struct hashmap_t map;
-    hashmap_init(&map);
-
-    int x = 1;
-    int y = 2;
-    int z = 3;
-
-    char *a = "hello";
-    hashmap_put(&map, a, strlen(a) + 1, &x, 1);
-    char *b = "hellO";
-    hashmap_put(&map, b, strlen(b) + 1, &y, 1);
-    char *c = "hello.";
-    hashmap_put(&map, c, strlen(c) + 1, &z, 1);
-
-    int *X = hashmap_get(&map, a, strlen(a) + 1);
-    int *Y = hashmap_get(&map, b, strlen(b) + 1);
-    int *Z = hashmap_get(&map, c, strlen(c) + 1);
-    assert(*X == x && *Y == y && *Z == z);
-
-    hashmap_free(&map);
+    entry->value = NULL;
+    return true;
 }
