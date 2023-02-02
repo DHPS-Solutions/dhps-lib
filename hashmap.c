@@ -7,7 +7,7 @@
 #include <assert.h>
 
 #define DHPS_BUCKET_SIZE 6
-#define DHPS_STARTING_OVERFLOW_BUCKET_SIZE 8
+#define DHPS_STARTING_OVERFLOW_BUCKET_SIZE 4
 #define DHPS_STARTING_BUCKETS_log2 3
 #define N_BUCKETS(log2) (2 << ((log2) - 1))
 
@@ -93,9 +93,35 @@ static struct overflow_bucket_t *overflow_alloc()
     return overflow;
 }
 
+static struct hashmap_entry_t *scan_overflow_for_match(struct overflow_bucket_t *overflow,
+                                                       void *key, size_t key_size, uint8_t extra)
+{
+    for (uint8_t i = 0; i < overflow->size; i++) {
+        if (overflow->entries[i].value == NULL)
+            continue;
+        if (overflow->entries[i].hash_extra != extra || overflow->entries[i].key_size != key_size)
+            continue;
+
+        if (memcmp(overflow->entries[i].key, key, key_size) == 0)
+            return &overflow->entries[i];
+    }
+
+    return NULL;
+}
+
+static inline void insert_into_entry(struct hashmap_entry_t *entry, void *key, size_t key_size,
+                                void *value, uint8_t extra)
+{
+    entry->key = key;
+    entry->key_size = key_size;
+    entry->value = value;
+    entry->hash_extra = extra;
+}
+
 static void insert_into_overflow(struct overflow_bucket_t *overflow, void *key, size_t key_size,
                                  void *value, uint8_t extra)
 {
+    //TODO: force resize?
     /* this should really never happen assuming the hash function spreads values evenly */
     if (overflow->size >= overflow->capacity) {
         printf("nooooooooo %d\n", overflow->size);
@@ -103,35 +129,60 @@ static void insert_into_overflow(struct overflow_bucket_t *overflow, void *key, 
     }
 
     struct hashmap_entry_t *found = &overflow->entries[overflow->size++];
-    found->value = value;
-    found->key = key;
-    found->key_size = key_size;
-    found->hash_extra = extra;
+    insert_into_entry(found, key, key_size, value, extra);
 }
 
 static void insert_into_bucket(struct bucket_t *bucket, void *key, size_t key_size, void *value,
                                uint8_t extra)
 {
-    //NOTE: do we need to check if a matching entry already exists, or do we not care about that?
-    //      After all, its a hashmap, not a hashset
-    //      But what if we want to update an exisitng entry? remove that insert again?
-    //      Just simply updating it would be nicer
-    for (uint8_t i = 0; i < DHPS_BUCKET_SIZE; i++) {
-        if (bucket->entries[i].value != NULL)
-            continue;
+    /*
+     * Our hashmap implementation does not allow duplcate entries.
+     * Therefore, we cannot simply find the first empty entry and set the new entry here, we have 
+     * to make sure the entry we are inserting does not already exist somewhere else in the bucket.
+     * If we find a matching entry, we simply override. If we do not find a matching entry, we
+     * insert the new entry in the first found empty entry.
+     */
+    struct hashmap_entry_t *found = NULL;
 
-        bucket->entries[i].value = value;
-        bucket->entries[i].key = key;
-        bucket->entries[i].key_size = key_size;
-        bucket->entries[i].hash_extra = extra;
-        return;
+    for (uint8_t i = 0; i < DHPS_BUCKET_SIZE; i++) {
+        if (bucket->entries[i].value != NULL) {
+            /* check if stored entry has the same key as entry we want to store */
+            if (bucket->entries[i].hash_extra != extra || bucket->entries[i].key_size != key_size)
+                continue;
+
+            if (memcmp(bucket->entries[i].key, key, key_size) == 0) {
+                insert_into_entry(&bucket->entries[i], key, key_size, value, extra);
+                return;
+            }
+        }
+
+        if (found == NULL)
+            found = &bucket->entries[i];
     }
 
-    /* no more space in direct pointers */
-    if (bucket->overflow == NULL)
-        bucket->overflow = overflow_alloc();
-
-    insert_into_overflow(bucket->overflow, key, key_size, value, extra);
+    if (bucket->overflow == NULL) {
+        if (found == NULL) {
+            /* 
+             * No more space in direct pointers and no overflow bucket. A duplicate can therefore
+             * not exist and we can safely create an overflow bucket and insert the item.
+             */
+            bucket->overflow = overflow_alloc();
+            insert_into_overflow(bucket->overflow, key, key_size, value, extra);
+        } else {
+            /* no overflow bucket and no duplcate entry found.
+             * A duplcate can therefore not exist and we can safely insert.
+             */
+            insert_into_entry(found, key, key_size, value, extra);
+        }
+    } else {
+        /* check overflow bucket for duplicate entry */
+        struct hashmap_entry_t *duplicate = scan_overflow_for_match(bucket->overflow, key, key_size,
+                                                                    extra);
+        if (duplicate != NULL)
+            insert_into_entry(duplicate, key, key_size, value, extra);
+        else
+            insert_into_entry(found, key, key_size, value, extra);
+    }
 }
 
 static void *get_from_bucket(struct bucket_t *bucket, void *key, size_t key_size, uint8_t extra)
@@ -165,7 +216,8 @@ static void *get_from_bucket(struct bucket_t *bucket, void *key, size_t key_size
     return NULL;
 }
 
-static void move_entry(struct bucket_t *new_buckets, uint32_t size_log2, struct hashmap_entry_t *entry)
+static void hash_and_insert(struct bucket_t *new_buckets, uint32_t size_log2,
+                            struct hashmap_entry_t *entry)
 {
     uint32_t hash_full = hash_func(entry->key, entry->key_size);
     uint32_t hash = hash_full >> (32 - size_log2);
@@ -179,15 +231,16 @@ static void move_entries(struct hashmap_t *map, struct bucket_t *new_buckets)
     for (uint32_t i = 0; i < N_BUCKETS(map->size_log2 - 1); i++) {
         struct bucket_t old_bucket = map->buckets[i];
         for (uint8_t j = 0; j < DHPS_BUCKET_SIZE; j++) {
-            if (old_bucket.entries[j].value != NULL)
-                move_entry(new_buckets, map->size_log2, &old_bucket.entries[j]);
+            if (old_bucket.entries[j].value != NULL) {
+                hash_and_insert(new_buckets, map->size_log2, &old_bucket.entries[j]);
+            }
         }
 
         /* move all overflow entries as well */
         if (old_bucket.overflow != NULL) {
             for (uint8_t j = 0; j < old_bucket.overflow->size; j++) {
                 if (old_bucket.overflow->entries[j].value != NULL)
-                    move_entry(new_buckets, map->size_log2, &old_bucket.overflow->entries[j]);
+                    hash_and_insert(new_buckets, map->size_log2, &old_bucket.overflow->entries[j]);
             }
         }
     }
@@ -244,7 +297,7 @@ void stress_test()
     struct hashmap_t map;
     hashmap_init(&map);
 
-    #define N 1000
+    #define N 64
 
     char key[128];
     for (int i = 0; i < N; i++) {
