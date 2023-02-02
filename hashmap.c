@@ -103,16 +103,9 @@ static void insert_into_bucket(struct bucket_t *bucket, void *key, size_t key_si
     }
 
     if (found == NULL) {
-        if (bucket->overflow == NULL) {
-            /* 
-             * No more space in direct pointers and no overflow bucket. A duplicate can therefore
-             * not exist and we can safely create an overflow bucket and insert the item.
-             */
+        if (bucket->overflow == NULL)
             bucket->overflow = overflow_alloc();
-            insert_into_overflow(bucket->overflow, key, key_size, value, extra);
-        } else {
-            insert_into_overflow(bucket->overflow, key, key_size, value, extra);
-        }
+        insert_into_overflow(bucket->overflow, key, key_size, value, extra);
     } else {
         /* check overflow bucket for duplicate entry */
         if (bucket->overflow != NULL) {
