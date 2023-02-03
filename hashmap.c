@@ -4,6 +4,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <assert.h>
+#ifdef HASHMAP_THREAD_SAFE
+#  include <pthread.h>
+#endif
 
 #include "hashmap.h"
 
@@ -28,9 +31,9 @@ static inline uint8_t hash_extra(uint32_t hash)
 static struct overflow_bucket_t *overflow_alloc()
 {
     struct overflow_bucket_t *overflow = malloc(sizeof(struct overflow_bucket_t));
-    overflow->entries = malloc(sizeof(struct hashmap_entry_t) * DHPS_STARTING_OVERFLOW_BUCKET_SIZE);
+    overflow->entries = malloc(sizeof(struct hashmap_entry_t) * HASHMAP_STARTING_OVERFLOW_BUCKET_SIZE);
     overflow->size = 0;
-    overflow->capacity = DHPS_STARTING_OVERFLOW_BUCKET_SIZE;
+    overflow->capacity = HASHMAP_STARTING_OVERFLOW_BUCKET_SIZE;
     return overflow;
 }
 
@@ -72,7 +75,7 @@ static void insert_into_overflow(struct overflow_bucket_t *overflow, void *key, 
     insert_entry(found, key, key_size, value, extra);
 }
 
-static void insert_into_bucket(struct bucket_t *bucket, void *key, size_t key_size, void *value,
+static bool insert_into_bucket(struct bucket_t *bucket, void *key, size_t key_size, void *value,
                                uint8_t extra)
 {
     /*
@@ -84,7 +87,7 @@ static void insert_into_bucket(struct bucket_t *bucket, void *key, size_t key_si
      */
     struct hashmap_entry_t *found = NULL;
 
-    for (uint8_t i = 0; i < DHPS_BUCKET_SIZE; i++) {
+    for (uint8_t i = 0; i < HASHMAP_BUCKET_SIZE; i++) {
         if (bucket->entries[i].value != NULL) {
             /* check if stored entry has the same key as entry we want to store */
             if (bucket->entries[i].hash_extra != extra || bucket->entries[i].key_size != key_size)
@@ -92,7 +95,7 @@ static void insert_into_bucket(struct bucket_t *bucket, void *key, size_t key_si
 
             if (memcmp(bucket->entries[i].key, key, key_size) == 0) {
                 insert_entry(&bucket->entries[i], key, key_size, value, extra);
-                return;
+                return false;
             } else {
                 continue;
             }
@@ -117,11 +120,13 @@ static void insert_into_bucket(struct bucket_t *bucket, void *key, size_t key_si
             insert_into_overflow(bucket->overflow, key, key_size, value, extra);
         }
     }
+
+    return true;
 }
 
 static void *get_from_bucket(struct bucket_t *bucket, void *key, size_t key_size, uint8_t extra)
 {
-    for (uint8_t i = 0; i < DHPS_BUCKET_SIZE; i++) {
+    for (uint8_t i = 0; i < HASHMAP_BUCKET_SIZE; i++) {
         if (bucket->entries[i].value == NULL)
             continue;
         if (bucket->entries[i].hash_extra != extra || bucket->entries[i].key_size != key_size)
@@ -164,7 +169,7 @@ static void move_entries(struct hashmap_t *map, struct bucket_t *new_buckets)
     // why -1? because thats the old size
     for (uint32_t i = 0; i < N_BUCKETS(map->size_log2 - 1); i++) {
         struct bucket_t old_bucket = map->buckets[i];
-        for (uint8_t j = 0; j < DHPS_BUCKET_SIZE; j++) {
+        for (uint8_t j = 0; j < HASHMAP_BUCKET_SIZE; j++) {
             if (old_bucket.entries[j].value != NULL)
                 hash_and_insert(new_buckets, map->size_log2, &old_bucket.entries[j]);
         }
@@ -185,21 +190,27 @@ static void move_entries(struct hashmap_t *map, struct bucket_t *new_buckets)
 
 void hashmap_init(struct hashmap_t *map)
 {
+#ifdef HASHMAP_THREAD_SAFE
+    pthread_mutex_init(&map->lock, NULL);
+#endif
     map->len = 0;
-    map->size_log2 = DHPS_STARTING_BUCKETS_log2;
+    map->size_log2 = HASHMAP_STARTING_BUCKETS_log2;
 
     map->buckets = malloc(sizeof(struct bucket_t) * N_BUCKETS(map->size_log2));
     struct bucket_t bucket;
     for (uint32_t i = 0; i < N_BUCKETS(map->size_log2); i++) {
         bucket = map->buckets[i];
         bucket.overflow = NULL;
-        for (uint8_t i = 0; i < DHPS_BUCKET_SIZE; i++)
+        for (uint8_t i = 0; i < HASHMAP_BUCKET_SIZE; i++)
             bucket.entries[i].value = NULL;
     }
 }
 
 void hashmap_free(struct hashmap_t *map)
 {
+#ifdef HASHMAP_THREAD_SAFE
+    pthread_mutex_lock(&map->lock);
+#endif
     struct bucket_t bucket;
     for (uint32_t i = 0; i < N_BUCKETS(map->size_log2); i++) {
         bucket = map->buckets[i];
@@ -210,11 +221,17 @@ void hashmap_free(struct hashmap_t *map)
     }
 
     free(map->buckets);
+#ifdef HASHMAP_THREAD_SAFE
+    pthread_mutex_unlock(&map->lock);
+#endif
 }
 
 void hashmap_put(struct hashmap_t *map, void *key, size_t key_size, void *t, size_t ts)
 {
-    double load_factor = (double)map->len / (N_BUCKETS(map->size_log2) * DHPS_BUCKET_SIZE);
+#ifdef HASHMAP_THREAD_SAFE
+    pthread_mutex_lock(&map->lock);
+#endif
+    double load_factor = (double)map->len / (N_BUCKETS(map->size_log2) * HASHMAP_BUCKET_SIZE);
     if (load_factor >= 0.75) {
         // NOTE: instead of moving all entries in one go, we can only move over some buckets
         //       and invalidate the rest and move them once necesary
@@ -229,7 +246,7 @@ void hashmap_put(struct hashmap_t *map, void *key, size_t key_size, void *t, siz
         for (uint32_t i = 0; i < N_BUCKETS(map->size_log2); i++) {
             struct bucket_t bucket = new_buckets[i];
             bucket.overflow = NULL;
-            for (uint8_t i = 0; i < DHPS_BUCKET_SIZE; i++)
+            for (uint8_t i = 0; i < HASHMAP_BUCKET_SIZE; i++)
                 bucket.entries[i].value = NULL;
         }
 
@@ -239,27 +256,48 @@ void hashmap_put(struct hashmap_t *map, void *key, size_t key_size, void *t, siz
     uint32_t hash_full = hash_func(key, key_size);
     uint32_t hash = hash_full >> (32 - map->size_log2);
     uint8_t extra = hash_extra(hash_full);
-    insert_into_bucket(&map->buckets[hash], key, key_size, t, extra);
-    map->len++;
+    bool rc = insert_into_bucket(&map->buckets[hash], key, key_size, t, extra);
+    if (rc)
+        map->len++;
+
+#ifdef HASHMAP_THREAD_SAFE
+    pthread_mutex_unlock(&map->lock);
+#endif
 }
 
 void *hashmap_get(struct hashmap_t *map, void *key, size_t key_size)
 {
+#ifdef HASHMAP_THREAD_SAFE
+    pthread_mutex_lock(&map->lock);
+#endif
     uint32_t hash_full = hash_func(key, key_size);
     uint32_t hash = hash_full >> (32 - map->size_log2);
     uint8_t extra = hash_extra(hash_full);
+#ifdef HASHMAP_THREAD_SAFE
+    pthread_mutex_unlock(&map->lock);
+#endif
     return get_from_bucket(&map->buckets[hash], key, key_size, extra);
 }
 
 bool hashmap_rm(struct hashmap_t *map, void *key, size_t key_size)
 {
+#ifdef HASHMAP_THREAD_SAFE
+    pthread_mutex_lock(&map->lock);
+#endif
     uint32_t hash_full = hash_func(key, key_size);
     uint32_t hash = hash_full >> (32 - map->size_log2);
     uint8_t extra = hash_extra(hash_full);
     struct hashmap_entry_t *entry =  get_from_bucket(&map->buckets[hash], key, key_size, extra);
-    if (entry == NULL || entry->value == NULL)
+    if (entry == NULL || entry->value == NULL) {
+#ifdef HASHMAP_THREAD_SAFE
+        pthread_mutex_unlock(&map->lock);
+#endif
         return false;
+    }
 
     entry->value = NULL;
+#ifdef HASHMAP_THREAD_SAFE
+    pthread_mutex_unlock(&map->lock);
+#endif
     return true;
 }
