@@ -6,7 +6,7 @@
 #define HASHMAP_BUCKET_SIZE 6
 #define HASHMAP_STARTING_OVERFLOW_BUCKET_SIZE 4
 #define HASHMAP_STARTING_BUCKETS_log2 3
-#define N_BUCKETS(log2) (2 << ((log2) - 1))
+#define N_BUCKETS(log2) (1 << (log2))
 
 #include <stdlib.h>
 #include <stdbool.h>
