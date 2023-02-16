@@ -17,7 +17,7 @@
 
 
 struct hashmap_entry_t {
-    void *value;
+    void *value;                // if NULL then entry is marked as unused
     void *key;
     size_t key_size;
     uint8_t hash_extra;         // used for faster comparison
@@ -51,9 +51,15 @@ void hashmap_init(struct hashmap_t *map);
 void hashmap_free(struct hashmap_t *map);
 
 void hashmap_put(struct hashmap_t *map, void *key, size_t key_size, void *t, size_t ts);
+#define hashmap_sput(a, b, c, d) hashmap_put(a, b, (strlen(b) + 1) * sizeof(char), c, d)
+#define hashmap_ssput(a, b, c) hashmap_put(a, b, (strlen(b) + 1) * sizeof(char), c, (strlen(c) + 1) * sizeof(char))
 
 void *hashmap_get(struct hashmap_t *map, void *key, size_t key_size);
+#define hashmap_sget(a, b) hashmap_get(a, b, (strlen(b) + 1) * sizeof(char))
 
 bool hashmap_rm(struct hashmap_t *map, void *key, size_t key_size);
+#define hashmap_srm(a, b) hashmap_rm(a, b, (strlen(b) + 1) * sizeof(char))
+
+size_t hashmap_len(struct hashmap_t *map);
 
 #endif /* HASHMAP_H */

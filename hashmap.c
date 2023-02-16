@@ -124,7 +124,7 @@ static bool insert_into_bucket(struct bucket_t *bucket, void *key, size_t key_si
     return true;
 }
 
-static void *get_from_bucket(struct bucket_t *bucket, void *key, size_t key_size, uint8_t extra)
+static struct hashmap_entry_t *get_from_bucket(struct bucket_t *bucket, void *key, size_t key_size, uint8_t extra)
 {
     for (uint8_t i = 0; i < HASHMAP_BUCKET_SIZE; i++) {
         if (bucket->entries[i].value == NULL)
@@ -134,7 +134,7 @@ static void *get_from_bucket(struct bucket_t *bucket, void *key, size_t key_size
 
         /* please compiler, do not reorder muh code ! */
         if (memcmp(bucket->entries[i].key, key, key_size) == 0)
-            return bucket->entries[i].value;
+            return &bucket->entries[i];
     }
 
     /* value not found, check overflow bucket */
@@ -149,7 +149,7 @@ static void *get_from_bucket(struct bucket_t *bucket, void *key, size_t key_size
             continue;
 
         if (memcmp(overflow->entries[i].key, key, key_size) == 0)
-            return overflow->entries[i].value;
+            return &overflow->entries[i];
     }
 
     return NULL;
@@ -276,28 +276,40 @@ void *hashmap_get(struct hashmap_t *map, void *key, size_t key_size)
 #ifdef HASHMAP_THREAD_SAFE
     pthread_mutex_unlock(&map->lock);
 #endif
-    return get_from_bucket(&map->buckets[hash], key, key_size, extra);
+    struct hashmap_entry_t *found = get_from_bucket(&map->buckets[hash], key, key_size, extra);
+    if (found == NULL)
+        return NULL;
+    return found->value;
 }
 
 bool hashmap_rm(struct hashmap_t *map, void *key, size_t key_size)
 {
+    if (map->len == 0)
+        return false;
+
 #ifdef HASHMAP_THREAD_SAFE
     pthread_mutex_lock(&map->lock);
 #endif
     uint32_t hash_full = hash_func(key, key_size);
     uint32_t hash = hash_full >> (32 - map->size_log2);
     uint8_t extra = hash_extra(hash_full);
-    struct hashmap_entry_t *entry =  get_from_bucket(&map->buckets[hash], key, key_size, extra);
-    if (entry == NULL || entry->value == NULL) {
+    struct hashmap_entry_t *found = get_from_bucket(&map->buckets[hash], key, key_size, extra);
+    if (found == NULL || found->value == NULL) {
 #ifdef HASHMAP_THREAD_SAFE
         pthread_mutex_unlock(&map->lock);
 #endif
         return false;
     }
 
-    entry->value = NULL;
+    found->value = NULL;
 #ifdef HASHMAP_THREAD_SAFE
     pthread_mutex_unlock(&map->lock);
 #endif
+    map->len--;
     return true;
+}
+
+size_t hashmap_len(struct hashmap_t *map)
+{
+    return map->len;
 }
