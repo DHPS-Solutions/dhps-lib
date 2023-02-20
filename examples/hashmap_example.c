@@ -47,8 +47,9 @@ void deep_copy_test()
 int main()
 {
     /* puts and later gets a bunch of entries in a hashmap */
-    //stress_test();
-    //deep_copy_test();
+    stress_test();
+    return 1;
+    deep_copy_test();
 
     struct hashmap_t map;
     hashmap_init(&map);

@@ -173,8 +173,6 @@ static void rehash_and_insert(struct bucket_t *new_buckets, uint32_t size_log2,
 
 static void rehash(struct hashmap_t *map, struct bucket_t *new_buckets)
 {
-    #include <stdio.h>
-    printf("yo\n");
     // why -1? because thats the old size
     for (uint32_t i = 0; i < N_BUCKETS(map->size_log2 - 1); i++) {
         struct bucket_t old_bucket = map->buckets[i];
