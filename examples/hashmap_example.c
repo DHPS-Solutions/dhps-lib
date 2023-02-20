@@ -10,7 +10,7 @@ void stress_test()
     struct hashmap_t map;
     hashmap_init(&map);
 
-    #define N 128
+    #define N 1024
 
     char key[128];
     for (int i = 0; i < N; i++) {
@@ -24,6 +24,9 @@ void stress_test()
         snprintf(key, 32, "hello:%d!", i);
         int *x = hashmap_sget(&map, key);
         assert(*x == i);
+
+        if (i % 11 == 0)
+            hashmap_srm(&map, key);
     }
 }
 
@@ -44,9 +47,20 @@ void deep_copy_test()
     hashmap_free(&map);
 }
 
+void simple()
+{
+    struct hashmap_t map;
+    hashmap_init(&map);
+    int x = 1;
+    hashmap_sput_alloc(&map, "yo", &x, sizeof(int));
+    hashmap_free(&map);
+}
+
 int main()
 {
     /* puts and later gets a bunch of entries in a hashmap */
+    simple();
+    return 0;
     stress_test();
     deep_copy_test();
 

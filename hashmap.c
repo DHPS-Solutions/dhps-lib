@@ -211,8 +211,10 @@ void hashmap_init(struct hashmap_t *map)
     for (uint32_t i = 0; i < N_BUCKETS(map->size_log2); i++) {
         bucket = map->buckets[i];
         bucket.overflow = NULL;
-        for (uint8_t i = 0; i < HASHMAP_BUCKET_SIZE; i++)
-            bucket.entries[i].value = NULL;
+        for (uint8_t j = 0; j < HASHMAP_BUCKET_SIZE; j++) {
+            bucket.entries[j].value = NULL;
+            bucket.entries[j].alloc_flag = (uint8_t)false;
+        }
     }
 }
 
@@ -224,8 +226,8 @@ void hashmap_free(struct hashmap_t *map)
     struct bucket_t bucket;
     for (uint32_t i = 0; i < N_BUCKETS(map->size_log2); i++) {
         bucket = map->buckets[i];
-        for (int j = 0; i < HASHMAP_BUCKET_SIZE; i++) {
-            if (bucket.entries[j].alloc_flag)
+        for (int j = 0; j < HASHMAP_BUCKET_SIZE; j++) {
+            if (bucket.entries[j].value != NULL && bucket.entries[j].alloc_flag)
                 free(bucket.entries[j].value);
         }
 
@@ -262,8 +264,10 @@ void hashmap_put_internal(struct hashmap_t *map, void *key, uint32_t key_size, v
         for (uint32_t i = 0; i < N_BUCKETS(map->size_log2); i++) {
             struct bucket_t bucket = new_buckets[i];
             bucket.overflow = NULL;
-            for (uint8_t i = 0; i < HASHMAP_BUCKET_SIZE; i++)
-                bucket.entries[i].value = NULL;
+            for (uint8_t j = 0; j < HASHMAP_BUCKET_SIZE; j++) {
+                bucket.entries[j].value = NULL;
+                bucket.entries[j].alloc_flag = (uint8_t)false;
+            }
         }
 
         move_entries(map, new_buckets);
