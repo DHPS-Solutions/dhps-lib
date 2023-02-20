@@ -19,9 +19,13 @@
 struct hashmap_entry_t {
     void *value;                // if NULL then entry is marked as unused
     void *key;
-    size_t key_size;
+    uint32_t key_size;
+    uint32_t value_size;
     uint8_t hash_extra;         // used for faster comparison
-                                // the common case is that the bytes are not equal
+                                // the common case is that the bytes are not equal.
+    uint8_t alloc_flag;         // if sizeof bool and _Bool > 3 then this struct would be of size 36
+                                // instead 32 due to struct padding. Therefore we use one byte to be
+                                // safe we don't waste any memory space.
 };
 
 struct overflow_bucket_t {
@@ -50,15 +54,20 @@ void hashmap_init(struct hashmap_t *map);
 
 void hashmap_free(struct hashmap_t *map);
 
-void hashmap_put(struct hashmap_t *map, void *key, size_t key_size, void *t, size_t ts);
-#define hashmap_sput(a, b, c, d) hashmap_put(a, b, (strlen(b) + 1) * sizeof(char), c, d)
-#define hashmap_ssput(a, b, c) hashmap_put(a, b, (strlen(b) + 1) * sizeof(char), c, (strlen(c) + 1) * sizeof(char))
+void hashmap_put_internal(struct hashmap_t *map, void *key, uint32_t key_size, void *value,
+                          uint32_t value_size, bool alloc_flag);
+#define hashmap_put(map, key, key_size, value, value_size) hashmap_put_internal(map, key, key_size, value, value_size, false)
+#define hashmap_put_alloc(map, key, key_size, value, value_size) hashmap_put_internal(map, key, key_size, value, value_size, true)
+#define hashmap_sput(map, key, key_size, value) hashmap_put_internal(map, key, (strlen(key) + 1) * sizeof(char), key_size, value, false)
+#define hashmap_ssput(map, key, key_size) hashmap_put_internal(map, key, (strlen(key) + 1) * sizeof(char), key_size, (strlen(value) + 1) * sizeof(char), false)
+#define hashmap_sput_alloc(map, key, key_size, value) hashmap_put_internal(map, key, (strlen(key) + 1) * sizeof(char), key_size, value, true)
+#define hashmap_ssput_alloc(map, key, key_size) hashmap_put_internal(map, key, (strlen(key) + 1) * sizeof(char), key_size, (strlen(value) + 1) * sizeof(char), true)
 
 void *hashmap_get(struct hashmap_t *map, void *key, size_t key_size);
-#define hashmap_sget(a, b) hashmap_get(a, b, (strlen(b) + 1) * sizeof(char))
+#define hashmap_sget(map, b) hashmap_get(map, key, (strlen(b) + 1) * sizeof(char))
 
 bool hashmap_rm(struct hashmap_t *map, void *key, size_t key_size);
-#define hashmap_srm(a, b) hashmap_rm(a, b, (strlen(b) + 1) * sizeof(char))
+#define hashmap_srm(map, b) hashmap_rm(map, key, (strlen(b) + 1) * sizeof(char))
 
 size_t hashmap_len(struct hashmap_t *map);
 
