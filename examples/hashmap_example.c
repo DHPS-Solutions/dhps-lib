@@ -4,34 +4,51 @@
 
 #include "../hashmap.h"
 
+
 void stress_test()
 {
     struct hashmap_t map;
     hashmap_init(&map);
 
-    #define N 1000
+    #define N 128
 
     char key[128];
     for (int i = 0; i < N; i++) {
         snprintf(key, 32, "hello:%d!", i);
         char *cpy = malloc(32);
         strcpy(cpy, key);
-        int *cpy_i = malloc(4);
-        *cpy_i = i;
-        hashmap_put(&map, cpy, strlen(cpy) + 1, cpy_i, 4);
+        hashmap_sput_alloc(&map, cpy, &i, 4);
     }
 
     for (int i = 0; i < N; i++) {
         snprintf(key, 32, "hello:%d!", i);
-        int *x = hashmap_get(&map, key, strlen(key) + 1);
+        int *x = hashmap_sget(&map, key);
         assert(*x == i);
     }
+}
+
+void foo(struct hashmap_t *map)
+{
+    /* values are copied over to the heap */
+    hashmap_ssput_alloc(map, "key1", "value1");
+    hashmap_ssput_alloc(map, "key2", "value2");
+}
+
+void deep_copy_test()
+{
+    struct hashmap_t map;
+    hashmap_init(&map);
+    foo(&map);
+    assert(strcmp(hashmap_sget(&map, "key1"), "value1") == 0);
+    assert(strcmp(hashmap_sget(&map, "key2"), "value2") == 0);
+    hashmap_free(&map);
 }
 
 int main()
 {
     /* puts and later gets a bunch of entries in a hashmap */
-    //stress_test();
+    stress_test();
+    deep_copy_test();
 
     struct hashmap_t map;
     hashmap_init(&map);
