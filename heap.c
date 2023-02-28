@@ -26,7 +26,7 @@ static void __ensure_capacity(struct heap_t *heap)
     }
 }
 
-static void __heapify_up(struct heap_t *heap)
+void __heapify_up(struct heap_t *heap)
 {
     int idx = heap->size - 1;
     int parent_idx = HEAP_PARENT_IDX(idx);
@@ -37,7 +37,7 @@ static void __heapify_up(struct heap_t *heap)
     }
 }
 
-static void __heapify_down(struct heap_t *heap)
+void __heapify_down(struct heap_t *heap)
 {
     int idx = 0;
     int min_idx;

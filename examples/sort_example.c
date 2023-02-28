@@ -5,7 +5,7 @@
 
 #include "../sort.h"
 
-#define SIZE (5 * 1000000)
+#define SIZE (10 * 1000000)
 
 static inline bool cmp(const void *a, const void *b)
 {
@@ -128,6 +128,43 @@ void std_qs_run_sort_with_time(int *data)
     test_values(sum_before, sum_after);
 }
 
+void rec_qs_run_sort_with_time(int *data)
+{
+    clock_t t;
+    double elapsed;
+    long long sum_before = 0;
+    long long sum_after = 0;
+    sum_before = sum_array(data, SIZE);
+    test_sorted(data, SIZE);
+    printf("Started sorting\n");
+    t = clock();
+    quicksort_rec(data, SIZE, sizeof(int), cmp);
+    t = clock() - t;
+    double time_taken = ((double)t)/(CLOCKS_PER_SEC/1000);
+    printf("Time taken was: %fms\n", time_taken);
+    test_sorted(data, SIZE);
+    sum_after = sum_array(data, SIZE);
+    test_values(sum_before, sum_after);
+}
+
+void heap_sort_run_sort_with_time(int *data)
+{
+    clock_t t;
+    double elapsed;
+    long long sum_before = 0;
+    long long sum_after = 0;
+    sum_before = sum_array(data, SIZE);
+    test_sorted(data, SIZE);
+    printf("Started sorting\n");
+    t = clock();
+    heap_sort(data, SIZE, sizeof(int), cmp);
+    t = clock() - t;
+    double time_taken = ((double)t)/(CLOCKS_PER_SEC/1000);
+    printf("Time taken was: %fms\n", time_taken);
+    test_sorted(data, SIZE);
+    sum_after = sum_array(data, SIZE);
+    test_values(sum_before, sum_after);
+}
 
 int main()
 {
@@ -142,8 +179,13 @@ int main()
     copy(data, copy_arr, SIZE);
     printf("\nQsort: \n");
     std_qs_run_sort_with_time(copy_arr);
-    printf("--------------------------------------------------------\n\n");
-
+    copy(data, copy_arr, SIZE);
+    printf("\nRecursive Qsort: \n");
+    rec_qs_run_sort_with_time(copy_arr);
+    // printf("\nHeap sort: \n");
+    // copy(data, copy_arr, SIZE);
+    // heap_sort_run_sort_with_time(copy_arr);
+    printf("--------------------------------------------------------\n");
     printf("--------------------------------------------------------\n");
     printf("Sorted Numbers: %d million. \n\n", SIZE / 1000000);
     fill_sorted(data, SIZE);
