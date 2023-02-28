@@ -235,7 +235,6 @@ static void __block_partition(char *left, char *right, char **pivot_l, char **pi
     } while(true);
 
     // Move all elements equal to the pivot to the left.
-    // TODO: Fix this.
     char *piv_l = r;
 
     if (right - r > med_5_lim) {
@@ -257,46 +256,6 @@ static void __block_partition(char *left, char *right, char **pivot_l, char **pi
     BYTE_ASSERT(r, piv, size);
     *pivot_l = piv_l;
     *pivot_r = r;
-}
-
-static void __partition(char *left, char *right, char **pivot, size_t size, compare_fn_t cmp)
-{
-    char *mid;
-    char piv[size];
-    int diff = right - left;
-
-    if (diff > size << 7) { // If the array is larger than 128 elements, use median of five.
-        mid = __median_five_of_three(left, right, size, cmp); 
-    } else if (diff > (size << 2) + 1) { // If the array is larger than 32 elements, use median of five.
-        mid = __median_five(left, right, size, cmp);
-    } else {
-        mid = __median_three(left, right, size, cmp);
-    }
-
-    char *l = left + size;
-    char *r = right;
-
-    BYTE_ASSERT(piv, mid, size);
-    BYTE_ASSERT(mid, l, size);
-    BYTE_ASSERT(l, piv, size);
-    BYTE_SWAP(mid, right - size, size);
-
-    do {
-        do l += size;
-        while(cmp(l, piv));
-        
-        do r -= size;
-        while (cmp(piv, r));
-
-        if (l >= r)
-            break;
-
-        BYTE_SWAP(l, r, size);
-    } while(true);
-
-    BYTE_ASSERT(left + size, r, size);
-    BYTE_ASSERT(r, piv, size);
-    *pivot = r;
 }
 
 void __heap_sort(char *left, char *right, size_t size, compare_fn_t cmp)
@@ -325,11 +284,11 @@ void __heap_sort(char *left, char *right, size_t size, compare_fn_t cmp)
 static void __quicksort_rec(char *left, char *right, size_t size, compare_fn_t cmp)
 {   
     if (right - left >= RUN_INSERTION * size) {
-        char *piv; // Create pointer for the pivot/split-point.
+        char *piv_r; // Create pointer for the pivot/split-point.
         char *piv_l;
-        __block_partition(left, right, &piv, &piv_l, size, cmp); // Partition the pointer.
-        __quicksort_rec(piv + size, right, size, cmp);
-        __quicksort_rec(left, piv - size, size, cmp);
+        __block_partition(left, right, &piv_r, &piv_l, size, cmp); // Partition the pointer.
+        __quicksort_rec(piv_r + size, right, size, cmp);
+        __quicksort_rec(left, piv_l - size, size, cmp);
     } else {
         __insertion_sort(left, right, size, cmp);
     }
