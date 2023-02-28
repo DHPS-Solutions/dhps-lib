@@ -62,7 +62,7 @@
     @param a void *: item a to compare.
     @param b void *: item b to compare.
 */
-typedef bool (compare_fn_t)(void *a, void *b);
+typedef bool (compare_fn_t)(const void *a, const void *b);
 
 /* 
     Struct for a generic dynamic heap. 
@@ -110,5 +110,13 @@ void *heap_pop(struct heap_t *heap);
     @param item void *: a void pointer to the item to push.
 */
 void heap_push(struct heap_t *heap, void *item);
+
+/*
+    Method to heapify the heap upwards.
+    @param heap struct heap_t *: the heap to heapify.
+*/
+void __heapify_up(struct heap_t *heap);
+
+void __heapify_down(struct heap_t *heap);
 
 #endif

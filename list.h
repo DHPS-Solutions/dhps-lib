@@ -20,6 +20,9 @@
 #define LIST_FOR_EACH_T(l, i, item, T) \
 	for (i = 0, item = (T *)(*l->items); i < l->size; item = (T *)(*(l->items + ++i)))
 
+#define FOR_EACH(l, item, T) \
+    for (T **i = (T **)l->items, item = **i; i < (T **)(l->items + l->size); item = *(*(++i)))
+
 /* Macro for doing a reversed for each loop for the arraylist. */
 #define LIST_REVERSED_FOR_EACH(l, i, item) \
 	for (i = l->size - 1, item = *(l->items + i); i >= 0; item = *(l->items + --i))

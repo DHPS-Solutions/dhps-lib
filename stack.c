@@ -16,17 +16,17 @@ void free_stack(struct stack_t *stack)
     free(stack);
 }
 
-bool stack_empty(struct stack_t *stack)
+inline bool stack_empty(struct stack_t *stack)
 {
     return !stack->size;
 }
 
-bool stack_full(struct stack_t *stack)
+inline bool stack_full(struct stack_t *stack)
 {
     return stack->size == stack->capacity;
 }
 
-bool stack_push(struct stack_t *stack, void *item)
+inline bool stack_push(struct stack_t *stack, void *item)
 {
     if (stack_full(stack))
         return false;
@@ -35,7 +35,7 @@ bool stack_push(struct stack_t *stack, void *item)
     return true;
 }
 
-void *stack_pop(struct stack_t *stack)
+inline void *stack_pop(struct stack_t *stack)
 {
     if (stack_empty(stack))
         return NULL;
@@ -43,7 +43,7 @@ void *stack_pop(struct stack_t *stack)
     return *(stack->items + --stack->size);
 }
 
-void *stack_get(struct stack_t *stack)
+inline void *stack_get(struct stack_t *stack)
 {
     if (stack_empty(stack))
         return NULL;
