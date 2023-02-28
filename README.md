@@ -21,7 +21,7 @@ Generic algorithms and datastructures for C.
 - [ ] binary search
 
 ### graphs and functions
-- [ ] graph structure
+- [x] graph structure
 - [ ] dijkstra's algorithm
 - [ ] bellman ford
 - [ ] prim's algorithm
