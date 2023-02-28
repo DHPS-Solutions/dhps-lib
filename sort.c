@@ -5,7 +5,7 @@
 
 #include "heap.h"
 #include "stack.h"
-#include "sort.h"    
+#include "sort.h"
 
 /* Nice clean pointer bubblesort, never fully O(n^2). */
 static void __bubble_sort(char *left, char *right, size_t size, compare_fn_t cmp)
@@ -56,7 +56,7 @@ static inline char *__median_three(char *left, char *right, size_t size, compare
     }
     else {
         if ((*cmp)(right, mid)) {
-            if (right < left) { 
+            if ((*cmp)(right, left)) { 
                 THREE_BYTE_ROTATE(right, mid, left, size);
             } else { 
                 BYTE_SWAP(mid, right, size); 
@@ -99,13 +99,13 @@ static char *__median_five_of_three(char *left, char *right, size_t size, compar
     char *t_mid = left + FIND_MID(right, left, size);
     char *t_third_quart = left + FIND_THIRD_QUART(right, left, size);
 
-    char *left_mid = __median_five(left, t_first_quart, size, cmp);
+    char *left_mid = __median_three(left, t_first_quart, size, cmp);
 
-    char *mid = __median_five(t_first_quart, t_mid, size, cmp);
+    char *mid = __median_three(t_first_quart, t_mid, size, cmp);
 
-    char *right_mid = __median_five(t_mid, t_third_quart, size, cmp);
+    char *right_mid = __median_three(t_mid, t_third_quart, size, cmp);
 
-    char *last = __median_five(t_third_quart, right, size, cmp);
+    char *last = __median_three(t_third_quart, right, size, cmp);
 
     if ((*cmp)(left_mid, left))
         BYTE_SWAP(left, left_mid, size);
@@ -131,13 +131,12 @@ static void __block_partition(char *left, char *right, char **pivot_l, char **pi
     char *mid;
     char piv[size];
     int diff = right - left;
+    const int med_5_lim = size << 13;
 
-    if (diff > size << 13) {
+    if (diff > med_5_lim) {
         mid = __median_five_of_three(left, right, size, cmp);
-    } else if (diff > (size << 2) + 1) { // If the array is larger than 5 elements, use median of five.
-        mid = __median_five(left, right, size, cmp);
     } else {
-        mid = __median_three(left, right, size, cmp);
+        mid = __median_five(left, right, size, cmp);
     }
 
     BYTE_ASSERT(piv, mid, size);
@@ -239,7 +238,7 @@ static void __block_partition(char *left, char *right, char **pivot_l, char **pi
     // TODO: Fix this.
     char *piv_l = r;
 
-    if (right - r > size << 13) {
+    if (right - r > med_5_lim) {
         char *pd = r + size;
         int k = 0;
         while(k != 3 && pd <= right) {
@@ -254,7 +253,6 @@ static void __block_partition(char *left, char *right, char **pivot_l, char **pi
         }
     }
     
-
     BYTE_ASSERT(left + size, r, size);
     BYTE_ASSERT(r, piv, size);
     *pivot_l = piv_l;
@@ -354,7 +352,7 @@ static void __quicksort(char *left, char *right, size_t size, compare_fn_t cmp)
     ++d_s_top;
 
     do {
-        if (right - left >= ins_limit) {
+        if (depth < depth_limit && right - left >= ins_limit) {
             char *piv_r;
             char *piv_l;
             __block_partition(left, right, &piv_l, &piv_r, size, cmp);
@@ -371,9 +369,9 @@ static void __quicksort(char *left, char *right, size_t size, compare_fn_t cmp)
             *d_s_top = depth;
             ++d_s_top;
         } else {
-            // if (right - left >= ins_limit)
-            //     __heap_sort(left, right, size, cmp);
-            // else
+            if (right - left >= ins_limit)
+                __heap_sort(left, right, size, cmp);
+            else
                 __insertion_sort(left, right, size, cmp);
             right = stack_pop(&stack);
             left = stack_pop(&stack);
