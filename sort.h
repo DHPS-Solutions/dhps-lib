@@ -148,7 +148,13 @@ void quicksort(const void *base, size_t nmemb, size_t size, compare_fn_t cmp) ;
 */
 void quicksort_rec(const void *base, size_t nmemb, size_t size, compare_fn_t cmp);
 
-
+/*
+    Generic heapsort method, fully on stack, don't use for large datasets.
+    @param base const void*: the items that are to be sorted.
+    @param nmemb size_t: the number of items (members).
+    @param size size_t: the size of each item (member).
+    @param cmp compare_fn_t: the comparison function to compare items (members)
+*/
 void heap_sort(const void *base, size_t nmemb, size_t size, compare_fn_t cmp);
 
 #endif
