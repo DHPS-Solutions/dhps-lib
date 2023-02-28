@@ -20,6 +20,15 @@ Generic algorithms and datastructures for C.
 - [ ] prime number sieve
 - [ ] binary search
 
+### graphs and functions
+- [ ] graph structure
+- [ ] dijkstra's algorithm
+- [ ] bellman ford
+- [ ] prim's algorithm
+- [ ] breadth first search
+- [ ] depth first search
+- [ ] topological sorting
+
 ### Naming conventions and semantics
 Macro's:
   - All caps name.
