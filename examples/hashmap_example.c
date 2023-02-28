@@ -10,14 +10,12 @@ void stress_test()
     struct hashmap_t map;
     hashmap_init(&map);
 
-    #define N 1024
+    #define N 128
 
     char key[128];
     for (int i = 0; i < N; i++) {
         snprintf(key, 32, "hello:%d!", i);
-        char *cpy = malloc(32);
-        strcpy(cpy, key);
-        hashmap_sput_alloc(&map, cpy, &i, 4);
+        hashmap_sput_alloc(&map, key, &i, 4);
     }
 
     for (int i = 0; i < N; i++) {
@@ -25,9 +23,11 @@ void stress_test()
         int *x = hashmap_sget(&map, key);
         assert(*x == i);
 
-        if (i % 11 == 0)
-            hashmap_srm(&map, key);
+        //if (i % 11 == 0)
+        //    hashmap_srm(&map, key);
     }
+
+    hashmap_free(&map);
 }
 
 void foo(struct hashmap_t *map)
@@ -49,21 +49,6 @@ void deep_copy_test()
 
 void simple()
 {
-    struct hashmap_t map;
-    hashmap_init(&map);
-    int x = 1;
-    hashmap_sput_alloc(&map, "yo", &x, sizeof(int));
-    hashmap_free(&map);
-}
-
-int main()
-{
-    /* puts and later gets a bunch of entries in a hashmap */
-    simple();
-    return 0;
-    stress_test();
-    deep_copy_test();
-
     struct hashmap_t map;
     hashmap_init(&map);
 
@@ -98,4 +83,24 @@ int main()
     assert(hashmap_len(&map) == 2);
 
     hashmap_free(&map);
+}
+
+void debug()
+{
+    struct hashmap_t map;
+    hashmap_init(&map);
+
+    int x = 1;
+    hashmap_sput_alloc(&map, "key", &x, sizeof(int));
+    hashmap_srm(&map, "key");
+
+    hashmap_free(&map);
+}
+
+int main()
+{
+    stress_test();
+    //debug();
+    //simple();
+    //deep_copy_test();
 }
