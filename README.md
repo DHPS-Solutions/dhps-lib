@@ -5,7 +5,7 @@ Generic algorithms and datastructures for C.
 - [ ] dynamic hashtable
 - [x] dynamic array / list
 - [x] heap queue
-  - [ ] heap sort 
+  - [x] heap sort -> sort.c
 - [x] circular queue
 - [x] stack
 - [ ] string
