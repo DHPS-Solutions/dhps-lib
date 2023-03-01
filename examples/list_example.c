@@ -26,10 +26,10 @@ int main()
         printf("%d\n", *(int *)item);        
     }
 
-    // printf("Reversed\n");
-    // LIST_REVERSED_FOR_EACH(list, i, item) {
-    //     printf("%d\n", *(int *)item);        
-    // }
+    printf("Reversed\n");
+    LIST_REVERSED_FOR_EACH(list, i, item) {
+        printf("%d\n", *(int *)item);        
+    }
 
     list_delete_at_index(list, 2);
     printf("After delete index 2\n");
@@ -46,20 +46,12 @@ int main()
     int *item_T;
     printf("Using type casting\n");
     LIST_FOR_EACH_T(list, i, item_T, int)
-        printf("%d\n", *item_T);    
+        printf("%d\n", *item_T);
 
     int test;
     printf("Using type casting 2\n");
     #define T int
 
-    printf("list size %d\n", list->size);
-    for (T **i = (T **)list->items, test = **i; i < (T **)list->items + list->size - 1; test = *(*(++i))) {
-        printf("base: %ld | i: %ld | limit: %ld \n", (T **)list->items, i, (T **)(list->items + list->size));
-        printf("%d\n", test);
-    }
-
-    // FOR_EACH(list, test, int)
-    //     printf("%d\n", test);
 
     printf("Index of item with value 5: %ld\n", list_index_of_item(list, (void *)&e));
     
@@ -72,8 +64,13 @@ int main()
         printf("%d\n", *(int *)item);        
     }
     
-    free_list(list);
+    printf("Test capacity\n");
 
+    for (int i = 0; i < 100; i++) {
+        list_add(list, (void *)&i);
+    }
+
+    free_list(list);
 
     return 0;
 }
