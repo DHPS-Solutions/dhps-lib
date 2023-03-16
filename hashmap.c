@@ -11,13 +11,13 @@
 #include "hashmap.h"
 
 
-static uint32_t hash_func(void *t, uint32_t ts)
+static uint32_t hash_func(void *data, uint32_t data_size)
 {
     //NOTE: gigahafting kok (legger dermed ikke så mye lit til det)
     uint32_t A = 1327217885;
     uint32_t k = 0;
-    for (uint32_t i = 0; i < ts; i++)
-	k += (k << 5) + ((int8_t *)t)[i];
+    for (uint32_t i = 0; i < data_size; i++)
+	k += (k << 5) + ((int8_t *)data)[i];
 
     return k * A;
 }
@@ -56,7 +56,6 @@ static struct hashmap_entry_t *scan_overflow_for_match(struct overflow_bucket_t 
 static inline void insert_entry(struct hashmap_entry_t *entry, void *key, uint32_t key_size,
                                 void *value, uint32_t value_size, uint8_t extra, bool alloc_flag)
 {
-    //entry->key = key;
     entry->key = malloc(key_size);
     entry->key = memcpy(entry->key, key, key_size);
     entry->key_size = key_size;
@@ -184,7 +183,7 @@ static void move_entries(struct hashmap_t *map, struct bucket_t *new_buckets)
         for (uint8_t j = 0; j < HASHMAP_BUCKET_SIZE; j++) {
             if (old_bucket.entries[j].value != NULL) {
                 hash_and_insert(new_buckets, map->size_log2, &old_bucket.entries[j]);
-                //free(old_bucket.entries[j].key);
+                free(old_bucket.entries[j].key);
             }
         }
 
@@ -196,13 +195,16 @@ static void move_entries(struct hashmap_t *map, struct bucket_t *new_buckets)
                     //free(old_bucket.entries[j].key);
                 }
             }
+
+            free(old_bucket.overflow->entries);
+            free(old_bucket.overflow);
         }
 
     }
 
     //TODO: this is not sufficient
-    free(map->buckets);
-    map->buckets = new_buckets;
+    //free(map->buckets);
+    //map->buckets = new_buckets;
 }
 
 void hashmap_init(struct hashmap_t *map)

@@ -29,7 +29,7 @@ struct hashmap_entry_t {
 };
 
 struct overflow_bucket_t {
-    // NOTE: this is really just a dynamic array.
+    // NOTE: this is really just a dynamic array. But should it be a bitmap hmm?
     struct hashmap_entry_t *entries;
     uint8_t size, capacity;
 };
