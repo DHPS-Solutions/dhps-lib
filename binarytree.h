@@ -4,11 +4,18 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+/*
+    Function used to free a generic.
+    @param a void*: generic to free.
+*/
+typedef void free_fn_t(void *);
+
 /* Structs */
 
 /* Tree Node */
 struct tree_node_t {
     void *data;
+    free_fn_t *free_func;
     struct tree_node_t *left;
     struct tree_node_t *right;
     struct tree_node_t *parent;
@@ -39,7 +46,7 @@ void init_tree(struct tree_t *t);
     @param data void*: data to store in the node.
     @return struct tree_node_t*: new tree node.
 */
-struct tree_node_t *create_tree_node(void *data);
+struct tree_node_t *create_tree_node(void *data, free_fn_t *free_func);
 
 /*
     Function used to insert a new node in a tree.
@@ -47,7 +54,7 @@ struct tree_node_t *create_tree_node(void *data);
     @param data void*: data to store in the node.
     @param cmp compare_fn_t: function used to compare nodes.
 */
-void insert_tree_node(struct tree_t *t, void *data, compare_fn_t cmp);
+void insert_tree_node(struct tree_t *t, void *data, compare_fn_t cmp, free_fn_t *free_func);
 
 /*
     Function used to remove a node from a tree.

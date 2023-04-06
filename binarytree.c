@@ -8,20 +8,21 @@ void init_tree(struct tree_t *tree)
     tree->root = NULL;
 }
 
-struct tree_node_t *create_tree_node(void *data)
+struct tree_node_t *create_tree_node(void *data, free_fn_t *free_func)
 {
     struct tree_node_t *new_node = (struct tree_node_t *)
                                     (malloc(sizeof(struct tree_node_t)));
     new_node->data = data;
+    new_node->free_func = free_func;
     new_node->left = NULL;
     new_node->right = NULL;
     new_node->parent = NULL;
     return new_node;
 }
 
-void insert_tree_node(struct tree_t *tree, void *data, compare_fn_t cmp)
+void insert_tree_node(struct tree_t *tree, void *data, compare_fn_t cmp, free_fn_t *free_func)
 {
-    struct tree_node_t *new_node = create_tree_node(data);
+    struct tree_node_t *new_node = create_tree_node(data, free_func);
 
     if (!tree->root) {
         tree->root = new_node;
@@ -103,7 +104,7 @@ bool remove_tree_node(struct tree_t *tree, void *data, compare_fn_t cmp)
                 current->parent->right = NULL;
             }
         }
-        free(current);
+        free_tree_node(current);
     } else if (!current->left || !current->right) {
         struct tree_node_t *child = current->left ? current->left : current->right;
         if (current == tree->root) {
@@ -116,7 +117,7 @@ bool remove_tree_node(struct tree_t *tree, void *data, compare_fn_t cmp)
             }
         }
         child->parent = current->parent;
-        free(current);
+        free_tree_node(current);
     } else {
         struct tree_node_t *successor = current->right;
         while (successor->left) {
@@ -131,7 +132,7 @@ bool remove_tree_node(struct tree_t *tree, void *data, compare_fn_t cmp)
         if (successor->right) {
             successor->right->parent = successor->parent;
         }
-        free(successor);
+        free_tree_node(successor);
     }
     return true;
 }
@@ -139,14 +140,14 @@ bool remove_tree_node(struct tree_t *tree, void *data, compare_fn_t cmp)
 void free_tree_node(struct tree_node_t *node)
 {
     if (node) {
-        destroy_tree_node(node->left);
-        destroy_tree_node(node->right);
-        free(node->data);
+        free_tree_node(node->left);
+        free_tree_node(node->right);
+        node->free_func(node->data);
         free(node);
     }
 }
 
 void free_tree(struct tree_t *tree)
 {
-    destroy_tree_node(tree->root);
+    free_tree_node(tree->root);
 }
