@@ -1,6 +1,10 @@
 #ifndef LIST_H
 #define LIST_H
 
+#ifndef DYNAMIC_MACROS
+#define DYNAMIC_MACROS
+#endif
+
 #include <stdlib.h>
 #include <stdbool.h>
 
@@ -20,24 +24,9 @@
 #define LIST_FOR_EACH_T(l, i, item, T) \
 	for (i = 0, item = (T *)(*l->items); i < l->size; item = (T *)(*(l->items + ++i)))
 
-#define FOR_EACH(l, item, T) \
-    for (T **i = (T **)l->items, item = **i; i < (T **)(l->items + l->size); item = *(*(++i)))
-
 /* Macro for doing a reversed for each loop for the arraylist. */
 #define LIST_REVERSED_FOR_EACH(l, i, item) \
-	for (i = l->size - 1, item = *(l->items + i); i >= 0; item = *(l->items + --i))
-
-
-/* Macro that checks if bytes are equal a to value b. */
-#define BYTES_EQUAL(a, b, size, pred)   \
-    do {                                \
-        size_t __size = (size);         \
-        char *__a = (a);                \
-        char *__b = (b);                \
-        do {                            \
-            pred = (*__a++ == *__b++);    \
-        } while(pred && --__size > 0);  \
-    } while(0)                          
+	for (i = 0, item = *(l->items + l->size - 1); i < l->size; item = *(l->items + l->size - 1 - ++i))             
 
 /* Structs */
 

@@ -2,22 +2,7 @@
 #include <stdbool.h>
 
 #include "list.h"
-
-static void __ensure_capacity(struct list_t *list)
-{
-    if (list->size == list->capacity) {
-        list->capacity <<= 1;
-        list->items = (void **)(realloc(list->items, list->capacity * sizeof(void *)));
-    }
-}
-
-static void __reduce_capacity(struct list_t *list)
-{
-    if (list->size < (list->capacity >> 1)) {
-        list->capacity >>= 1;
-        list->items = (void **)(realloc(list->items, list->capacity * sizeof(void *)));
-    }
-}
+#include "common.h"
 
 bool list_empty(struct list_t *list)
 {
@@ -26,7 +11,7 @@ bool list_empty(struct list_t *list)
 
 void list_add(struct list_t *list, void *item)
 {
-    __ensure_capacity(list);
+    ENSURE_CAP(list->size, list->capacity, list->items);
     *(list->items + list->size++) = item;
 }
 
@@ -65,7 +50,7 @@ long list_delete_at_index(struct list_t *list, size_t idx)
 
     --list->size;
 
-    __reduce_capacity(list);
+    REDUCE_CAP(list->size, list->capacity, list->items);
 
     return idx;
 }
@@ -81,7 +66,7 @@ long list_delete_item(struct list_t *list, const void *item)
     
     --list->item_size;
 
-    __reduce_capacity(list);
+    REDUCE_CAP(list->size, list->capacity, list->items);
 
     return ret;
 }
