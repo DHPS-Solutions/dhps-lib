@@ -4,15 +4,33 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-/*
-    Function used to free a generic.
-    @param a void*: generic to free.
-*/
+/* Function definitions */
+
+/**
+ * Free function for a tree node.
+ * @param data The data to free.
+ */
 typedef void free_fn_t(void *);
+
+/**
+ * Compare function for a tree node.
+ * @param a The first node to compare.
+ * @param b The second node to compare.
+ * @return True if a < b, false otherwise.
+ */
+typedef bool compare_fn_t(const void *a, const void *b);
+
 
 /* Structs */
 
-/* Tree Node */
+/**
+ * A node in a binary tree.
+ * @param data The data stored in the node.
+ * @param free_func The function to free the data.
+ * @param left The left child of the node.
+ * @param right The right child of the node.
+ * @param parent The parent of the node.
+ */
 struct tree_node_t {
     void *data;
     free_fn_t *free_func;
@@ -21,80 +39,82 @@ struct tree_node_t {
     struct tree_node_t *parent;
 };
 
-/* Tree */
+/**
+ * A binary tree.
+ * @param root The root of the tree.
+ */
 struct tree_t {
     struct tree_node_t *root;
 };
 
+
 /* Methods */
 
-/* 
-    Function used to assert a generic to a new value. 
-    @param a const void*: a value to compare.
-    @param b const void*: b value to compare.
-*/
-typedef bool compare_fn_t(const void *a, const void *b);
-
-/*
-    Function used to initialize a tree.
-    @param t struct tree_t*: tree to initialize.
-*/
+/**
+ * Initialize a tree.
+ * @param t The tree to initialize.
+ */
 void init_tree(struct tree_t *t);
 
-/*
-    Function used to create a new tree node.
-    @param data void*: data to store in the node.
-    @return struct tree_node_t*: new tree node.
-*/
+/**
+ * Create a tree node.
+ * @param data The data to store in the node.
+ * @param free_func The function to free the data.
+ * @return The new tree node.
+ */
 struct tree_node_t *create_tree_node(void *data, free_fn_t *free_func);
 
-/*
-    Function used to insert a new node in a tree.
-    @param t struct tree_t*: tree to insert the node.
-    @param data void*: data to store in the node.
-    @param cmp compare_fn_t: function used to compare nodes.
-*/
+/**
+ * Insert a node into a tree.
+ * @param t The tree to insert into.
+ * @param data The data to insert.
+ * @param cmp The compare function.
+ * @param free_func The free function.
+ */
 void insert_tree_node(struct tree_t *t, void *data, compare_fn_t cmp, free_fn_t *free_func);
 
-/*
-    Function used to remove a node from a tree.
-    @param t struct tree_t*: tree to remove the node.
-    @param data void*: data to remove from the tree.
-    @param cmp compare_fn_t: function used to compare nodes.
-*/
+/**
+ * Remove a node from a tree.
+ * @param t The tree to remove from.
+ * @param data The data to remove.
+ * @param cmp The compare function.
+ * @return True if the node was removed, false otherwise.
+ */
 bool remove_tree_node(struct tree_t *t, void *data, compare_fn_t cmp);
 
-/*
-    Function used to find a node in a tree.
-    @param t struct tree_t*: tree to find the node.
-    @param data void*: data to find in the tree.
-    @param cmp compare_fn_t: function used to compare nodes.
-    @return struct tree_node_t*: node found.
-*/
+/**
+ * Find a node in a tree.
+ * @param t The tree to find in.
+ * @param data The data to find.
+ * @param cmp The compare function.
+ * @return The node if found, NULL otherwise.
+ */
 struct tree_node_t *find_tree_node(struct tree_t *t, void *data, compare_fn_t cmp);
 
-/*
-    Function used to free a tree.
-    @param t struct tree_t*: tree to free.
-*/
+/**
+ * Free a tree node.
+ * @param node The node to free.
+ */
 void free_tree(struct tree_t *t);
 
-/*
-    Function used to free a tree node.
-    @param node struct tree_node_t*: node to free.
-*/
+/**
+ * Free a tree node.
+ * @param node The node to free.
+ */
 void free_tree_node(struct tree_node_t *node);
 
-/*
-    Function used to find the height of a tree.
-    @param t struct tree_t*: tree to find the height.
-*/
+/**
+ * Find the height of a tree.
+ * @param t The tree to find the height of.
+ * @return The height of the tree.
+ */
 size_t find_height_tree(struct tree_t *t);
 
-/*
-    Function used to find the height of a tree node.
-    @param node struct tree_node_t*: node to find the height.
-*/
+/**
+ * Find the height of a tree node.
+ * @param node The node to find the height of.
+ * @return The height of the node.
+ */
 size_t find_height(struct tree_node_t *node);
 
 #endif
