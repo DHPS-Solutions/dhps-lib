@@ -12,13 +12,13 @@ Generic algorithms and datastructures for C.
 - [ ] linked list
   - [ ] singly linked
   - [ ] doubly linked
-- [ ] binary tree
+- [x] binary tree
 
 ### algorithms
 - [x] insertion sort
 - [x] quicksort
 - [ ] prime number sieve
-- [ ] binary search
+- [x] binary search
 
 ### graphs and functions
 - [ ] graph structure
