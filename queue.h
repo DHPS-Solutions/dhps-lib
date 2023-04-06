@@ -6,57 +6,65 @@
 
 /* Structs */
 
-/* Struct for a generic queue. */
+/**
+ * Struct used to represent a queue.
+ * @param items The items in the queue.
+ * @param start The start of the queue.
+ * @param end The end of the queue.
+ * @param size The size of the queue.
+ * @param max The max size of the queue.
+ */
 struct queue_t {
-    void    **items; /* void **: The items in the queue. */
-    int     start; /* int: The start position of the queue. */
-    int     end; /* int: The end position of the queue. */
-    size_t  size; /* size_t: The amount of items in the queue. */
-    size_t  max; /* size_t: The max amount of items that can be in the queue. */
+    void **items;
+    int start;
+    int end;
+    int size; 
+    int max;
 };
+
 
 /* Methods */
 
-/* 
-    Method to allocate memory for a new queue.
-    @param size size_t: the max size of the queue.
-    @returns a pointer to a new queue. 
-*/
-struct queue_t *malloc_queue(size_t size);
+/**
+ * Function used to initialize a queue.
+ * @param queue queue to initialize.
+ * @param size size of the queue.
+ */
+void init_queue(struct queue_t *queue, int size);
 
-/* 
-    Destructor method for a queue.
-    @param queue struct queue_t *: the queue to be destroyed.
-*/
-void free_queue(struct queue_t *queue);
-
-/* 
-    Predicate method to check if queue is empty.
-    @param queue struct queue_t *: the queue to check.
-    @returns bool of the queue's empty state.
-*/
+/**
+ * Function used to check if a queue is empty.
+ * @param queue queue to check.
+ * @return true if the queue is empty, false otherwise.
+ */
 bool queue_empty(struct queue_t *queue);
 
-/* 
-    Predicate method to check if queue is empty.
-    @param queue struct queue_t *: the queue to check.
-    @returns bool of the queue's full state.
-*/
+/**
+ * Function used to check if a queue is full.
+ * @param queue queue to check.
+ * @return true if the queue is full, false otherwise.
+ */
 bool queue_full(struct queue_t *queue);
 
-/* 
-    Method to insert an item into the queue.
-    @param queue struct queue_t *: the queue to push to.
-    @param item void*: the item to push.
-    @returns bool if the item was successfully added.
-*/
+/**
+ * Function used to push an item to a queue.
+ * @param queue queue to push to.
+ * @param item item to push.
+ * @return true if the item was pushed, false otherwise.
+ */
 bool queue_push(struct queue_t *queue, void *item);
 
-/* 
-    Method to get the first item in the queue and remove it. 
-    @param queue struct queue_t *: the queue to get the item from.
-    @returns a void pointer to the item or NULL queue is empty.
-*/
+/**
+ * Function used to pop an item from a queue.
+ * @param queue queue to pop from.
+ * @return the item popped from the queue.
+ */
 void *queue_pop(struct queue_t *queue);
+
+/**
+ * Function used to free a queue.
+ * @param queue queue to free.
+ */
+void free_queue(struct queue_t *queue);
 
 #endif
