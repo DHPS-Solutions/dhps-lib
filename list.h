@@ -16,92 +16,116 @@
 /* Error code if an item does not exists in the array list. */
 #define ITEM_NOT_FOUND -1
 
-/* Macro for each loop for arraylist. */
+/**
+ * Macro to perform a for each loop for the arraylist.
+ * @param l The arraylist to iterate over.
+ * @param i The index variable.
+ * @param item The item variable. 
+ */
 #define LIST_FOR_EACH(l, i, item) \
-	for (i = 0, item = *(l)->items; i < (l)->size; item = *((l)->items + ++i))
+	for ((i) = 0, item = *(l)->items; (i) < (l)->size; item = *((l)->items + ++(i)))
 
-/* Macro that does a for each loop for the arraylist while also doing automatic typecasting */
+/**
+ * Macro to perform a for each loop for the arraylist with a type.
+ * @param l The arraylist to iterate over.
+ * @param i The index variable.
+ * @param item The item variable. 
+ * @param T The type of the item.
+ */
 #define LIST_FOR_EACH_T(l, i, item, T) \
-	for (i = 0, item = (T *)(*(l)->items); i < (l)->size; item = (T *)(*((l)->items + ++i)))
+	for ((i) = 0, item = (T *)(*(l)->items); (i) < (l)->size; item = (T *)(*((l)->items + ++(i))))
 
-/* Macro for doing a reversed for each loop for the arraylist. */
+/**
+ * Macro to perform a for each loop for the arraylist in reverse.
+ * @param l The arraylist to iterate over.
+ * @param i The index variable.
+ * @param item The item variable. 
+ */
 #define LIST_REVERSED_FOR_EACH(l, i, item) \
-	for (i = 0, item = *((l)->items + (l)->size - 1); i < (l)->size; item = *((l)->items + (l)->size - 1 - ++i))             
+	for ((i) = 0, item = *((l)->items + (l)->size - 1); (i) < (l)->size; item = *((l)->items + (l)->size - 1 - ++(i)))             
 
 /* Structs */
 
-/* Basic generic dynamic array list. */
+/**
+ * Struct to represent an array list.
+ * @param size the current size of the array list.
+ * @param capacity the current max memory of the array list.
+ * @param item_size the size of each item in the list.
+ * @param items the items in the array list.
+*/
 struct list_t {
-    size_t  size;       /* The current size of the array list. */
-    size_t  capacity;   /* The current max memory of the array list. */
-    size_t  item_size;  /* The size of each item in the list. */
-    void    **items;    /* The items in the array list. */
+    size_t size;
+    size_t capacity;
+    size_t item_size;
+    void **items;
 };
 
 /* Methods */
 
-/*  
-    Method to allocate memory for a new array list.
-*/
+/**
+ * Method to initialize an array list.
+ */
 void init_list(struct list_t *list, size_t item_size);
 
 /* 
     Destructor method for a array list.
     @param list struct list_t *: the array list to be destroyed.
 */
+/**
+ * Method to free an array list.
+ * @param list the array list to be freed.
+ */
 void free_list(struct list_t *list);
 
-/* 
-    Method to add an item into the array list. 
-    @param list struct list_t *: the array list to add the item to.
-    @param item void *: a void pointer to the item to add.
-*/
+/**
+ * Method to add an item to an array list.
+ * @param list the array list to add the item to.
+ * @param item the item to add to the array list. 
+ */
 void list_add(struct list_t *list, void *item);
 
-/* 
-    Method to get an item from an index in an array list. 
-    @param list struct list_t *: the array list to get the item from.
-    @param idx size_t: a the index to get.
-    @returns a void pointer to the item at the index or null if idx out of bounds. 
-*/
+/**
+ * Method to get the item at an index in an array list.
+ * @param list the array list to get the index from.
+ * @param idx the index to get the item from.
+ */
 void *list_item_at_index(struct list_t *list, size_t idx);
 
-/* 
-    Method to get an item from an index in an array list. 
-    @param list struct list_t *: the array list to get the index from.
-    @param item void *: a void pointer to the item to get.
-    @returns the index of the item or -1 if not found.
-*/
+/**
+ * Method to get the index of an item in an array list.
+ * @param list the array list to get the index from.
+ * @param item the item to get the index of.
+ * @return the index of the item, or ITEM_NOT_FOUND if the item does not exist.
+ */
 long list_index_of_item(struct list_t *list, const void *item);
 
-/* 
-    Method to get delete item from an array list. 
-    @param list struct list_t *: the array list to delete the item from.
-    @param item void *: a void pointer to the item to delete.
-    @returns the index of the item or -1 if not found.
-*/
+/**
+ * Method to delete an item from an array list.
+ * @param list the array list to delete the item from.
+ * @param item the item to delete.
+ * @return the index of the item, or ITEM_NOT_FOUND if the item does not exist.
+ */
 long list_delete_item(struct list_t *list, const void *item);
 
-/* 
-    Method to delete an item from an index in an array list. 
-    @param list struct list_t *: the array list to delete the item from.
-    @param idx size_t: a the index to delete.
-    @returns the index of the item or -1 if not found.
-*/
+/**
+ * Method to delete an item at an index from an array list.
+ * @param list the array list to delete the item from.
+ * @param idx the index to delete the item from.
+ * @return the index of the item, or ITEM_NOT_FOUND if the item does not exist.
+ */
 long list_delete_at_index(struct list_t *list, size_t idx);
 
-/*
-    Method to delete all items (free's them) from an array list.
-    This method also resizes the array to start size.
-    @param list struct list_t *: the array list to delete all items from.
-*/
+/**
+ * Method to delete all items from an array list.
+ * @param list the array list to delete the items from.
+ */
 void list_delete_all(struct list_t *list);
 
-/* 
-    Predicate method to check if an array list is empty. 
-    @param list struct list_t *: the array list to check.
-    @returns the empty state of the list.
-*/
+/**
+ * Method to check if an array list is empty.
+ * @param list the array list to check.
+ * @return true if the array list is empty, false otherwise.
+ */
 bool list_empty(struct list_t *list);
 
 #endif
