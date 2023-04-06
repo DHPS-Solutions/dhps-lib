@@ -5,29 +5,19 @@ Generic algorithms and datastructures for C.
 - [ ] dynamic hashtable
 - [x] dynamic array / list
 - [x] heap queue
-  - [x] heap sort -> sort.c
 - [x] circular queue
 - [x] stack
 - [ ] string
 - [ ] linked list
   - [ ] singly linked
   - [ ] doubly linked
-- [x] binary tree
+- [x] binary search tree
 
-### algorithms
+### sorting
 - [x] insertion sort
 - [x] quicksort
-- [ ] prime number sieve
-- [x] binary search
-
-### graphs and functions
-- [ ] graph structure
-- [ ] dijkstra's algorithm
-- [ ] bellman ford
-- [ ] prim's algorithm
-- [ ] breadth first search
-- [ ] depth first search
-- [ ] topological sorting
+- [x] heapsort
+- [x] bubblesort
 
 ### Naming conventions and semantics
 Macro's:
