@@ -18,15 +18,15 @@
 
 /* Macro for each loop for arraylist. */
 #define LIST_FOR_EACH(l, i, item) \
-	for (i = 0, item = *l->items; i < l->size; item = *(l->items + ++i))
+	for (i = 0, item = *(l)->items; i < (l)->size; item = *((l)->items + ++i))
 
 /* Macro that does a for each loop for the arraylist while also doing automatic typecasting */
 #define LIST_FOR_EACH_T(l, i, item, T) \
-	for (i = 0, item = (T *)(*l->items); i < l->size; item = (T *)(*(l->items + ++i)))
+	for (i = 0, item = (T *)(*(l)->items); i < (l)->size; item = (T *)(*((l)->items + ++i)))
 
 /* Macro for doing a reversed for each loop for the arraylist. */
 #define LIST_REVERSED_FOR_EACH(l, i, item) \
-	for (i = 0, item = *(l->items + l->size - 1); i < l->size; item = *(l->items + l->size - 1 - ++i))             
+	for (i = 0, item = *((l)->items + (l)->size - 1); i < (l)->size; item = *((l)->items + (l)->size - 1 - ++i))             
 
 /* Structs */
 
@@ -42,9 +42,8 @@ struct list_t {
 
 /*  
     Method to allocate memory for a new array list.
-    @returns a pointer to a new array list. 
 */
-struct list_t *list_malloc(size_t item_size);
+void init_list(struct list_t *list, size_t item_size);
 
 /* 
     Destructor method for a array list.

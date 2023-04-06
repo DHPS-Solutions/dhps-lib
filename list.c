@@ -4,6 +4,14 @@
 #include "list.h"
 #include "common.h"
 
+void init_list(struct list_t * list, size_t item_size)
+{
+    list->size = 0;
+    list->capacity = LIST_STARTING_CAPACITY;
+    list->items = (void **)(malloc(LIST_STARTING_CAPACITY * sizeof(void *)));
+    list->item_size = item_size;
+}
+
 bool list_empty(struct list_t *list)
 {
     return !list->size;
@@ -71,18 +79,6 @@ long list_delete_item(struct list_t *list, const void *item)
     return ret;
 }
 
-struct list_t *list_malloc(size_t item_size)
-{
-    struct list_t *list = (struct list_t *)(malloc)(sizeof(struct list_t));
-
-    list->size = 0;
-    list->capacity = LIST_STARTING_CAPACITY;
-    list->items = (void **)(malloc(LIST_STARTING_CAPACITY * sizeof(void *)));
-    list->item_size = item_size;
-
-    return list;
-}
-
 void list_delete_all(struct list_t *list)
 {
     list->size = 0;
@@ -93,5 +89,4 @@ void list_delete_all(struct list_t *list)
 void free_list(struct list_t *list)
 {
     free(list->items);
-    free(list);
 }
