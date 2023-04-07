@@ -77,6 +77,13 @@ int main()
     hashmap_free(&map);
 
     double cpu_time_used = ((double) (end - start) * 1000) / CLOCKS_PER_SEC;
+    double per = (cpu_time_used * 1000 / (double)(len * N));
     printf("Getting %d items took %fms\n", len * N, cpu_time_used);
-    printf("Time per get: %fus\n", (cpu_time_used * 1000 / (double)(len * N)));
+    printf("Time per get: %fus\n", per);
+
+#ifdef WRITE_TO_LOG
+    FILE *fp = fopen("hm_log.csv", "w");
+    fprintf(fp, "%s,%f,%f,0\n", __DATE__, cpu_time_used, per);
+    fclose(fp)
+#endif
 }
