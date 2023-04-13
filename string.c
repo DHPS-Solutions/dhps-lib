@@ -40,6 +40,24 @@ void string_free(struct string_t *s)
     free(s);
 }
 
+struct string_t *string_new_slice(const char *data, size_t start, size_t end)
+{
+    /* why +2? 
+     * 1. Null termination.
+     * 2. We the entire data from the start position to the end position to be present.
+     *    say start = 0 and end = 1, we want both the 0th char and the 1st char, i.e end - start + 1.
+     */
+    size_t len = end - start + 2;
+    struct string_t *s = malloc(sizeof(struct string_t));
+    s->capacity = __STRING_DEFAULT_CAPACITY__ >= len ? __STRING_DEFAULT_CAPACITY__ : len;
+    s->data = (char *)(malloc(__CHAR_BIT__ * s->capacity));
+    s->length = len;
+
+    memcpy(s->data, data + start, len);
+    s->data[s->length - 1] = 0;
+    return s;
+}
+
 size_t string_length(const struct string_t *s)
 {
     if (s == NULL)
