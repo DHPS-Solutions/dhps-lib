@@ -9,7 +9,52 @@
 #define __STRING_DEFAULT_CAPACITY__ 32
 #define CMP_ERR 1337    
 
-typedef struct string_t* string;
+/* Macro's */
+
+/**
+ * Macro for comparing two strings.
+ * @param str1 The first string.
+ * @param str2 The second string.
+ * @return 0 if the strings are equal, 
+ *         smaller than -1 if the first string is more alphabetical than the second string, 
+ *         larger than 1 if the first string is less alphabetical than the second string.
+ */
+#define STR_CMP(str1, str2) \
+({\
+    register const unsigned char *__s1 = (const unsigned char *) (str1)->data;\
+    register const unsigned char *__s2 = (const unsigned char *) (str2)->data;\
+    register unsigned char __c1;\
+    register unsigned char __c2;\
+    do {\
+        __c1 = *__s1++;\
+        __c2 = *__s2++;\
+    } while (__c1 == __c2 && __c1 != '\0');\
+    __c1 - __c2;\
+})
+
+/**
+ * Method to check if strings are equal.
+ * @param str1 The first string.
+ * @param str2 The second string.
+ * @return true if the strings are equal, false if they are not.
+ */
+#define STR_EQ(str1, str2)\
+({\
+    bool __eq = true;\
+    if ((str1)->length == (str2)->length) {\
+        register const unsigned char *__s1 = (const unsigned char *) (str1)->data;\
+        register const unsigned char *__s2 = (const unsigned char *) (str2)->data;\
+        do\
+            if (*__s1++ != *__s2++)\
+                __eq = false;\
+        while (*__s1 != '\0' && __eq);\
+    } else {\
+        __eq = false;\
+    }\
+    __eq;\
+})
+
+typedef struct string_t * string;
 
 /**
  * Structure for storing a string.
@@ -63,10 +108,10 @@ struct string_t *string_concat(struct string_t *src, const struct string_t *dest
  * @param str1 The first string.
  * @param str2 The second string.
  * @return 0 if the strings are equal, 
- *         larger than 1 if the source string is more alphabetical than the destination string, 
- *         smaller than -1 if the source string is less alphabetical than the destination string.
+ *         smaller than -1 if the first string is more alphabetical than the second string, 
+ *         larger than 1 if the first string is less alphabetical than the second string.
  */
-int string_compare(const struct string_t *src, const struct string_t *dest);
+int string_compare(const struct string_t *str1, const struct string_t *str2);
 
 /**
  * Method to check if strings are equal.
@@ -76,5 +121,6 @@ int string_compare(const struct string_t *src, const struct string_t *dest);
  */
 bool string_equal(const struct string_t *str1, const struct string_t *str2);
 
+int string_compare_2(const struct string_t *str1, const struct string_t *str2);
 
 #endif
