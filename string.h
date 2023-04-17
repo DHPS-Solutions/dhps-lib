@@ -81,6 +81,8 @@ struct string_t *string_new(const char *data);
  */
 void string_free(struct string_t *str);
 
+struct string_t *string_new_slice(const char *data, size_t start, size_t end);
+
 /**
  * Gets the length of a string.
  * @param str The string.
