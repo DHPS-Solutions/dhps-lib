@@ -1,4 +1,4 @@
-#include "../hashmap.h"
+#include "../../hashmap.h"
 #include <assert.h>
 
 void stress()
