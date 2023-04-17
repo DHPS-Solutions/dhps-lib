@@ -22,7 +22,7 @@ struct string_t *string_new(const char *data)
         *(s->data + i) = *(data + i);
         s->length++;
         if (i++ == s->capacity) {
-            s->capacity *= 2;
+            s->capacity += __STRING_DEFAULT_CAPACITY__;
             s->data = (char *)(realloc(s->data, __CHAR_BIT__ * s->capacity));
         }
     }
